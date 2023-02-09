@@ -1,5 +1,6 @@
 package com.github.ankowals.example.kafka.actors;
 
+import io.confluent.kafka.serializers.AbstractKafkaAvroSerDeConfig;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -7,6 +8,7 @@ import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serializer;
 
+import java.util.Objects;
 import java.util.Properties;
 
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
@@ -14,9 +16,15 @@ import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
 public class TestActorFactory {
 
     private final String bootstrapServer;
+    private final String schemaRegistryUrl;
 
     public TestActorFactory(String bootstrapServer) {
+        this(bootstrapServer, "");
+    }
+
+    public TestActorFactory(String bootstrapServer, String schemaRegistryUrl) {
         this.bootstrapServer = bootstrapServer;
+        this.schemaRegistryUrl = schemaRegistryUrl;
     }
 
     public <K, V> TestConsumer<K, V> createConsumer(Class<? extends Deserializer> keyDeserializerClass, Class<? extends Deserializer> valueDeserializerClass) {
@@ -42,6 +50,9 @@ public class TestActorFactory {
         properties.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         properties.put(ConsumerConfig.CLIENT_ID_CONFIG, "test-consumer-" + randomAlphabetic(8));
 
+        if (!Objects.equals(schemaRegistryUrl, ""))
+            properties.put(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, schemaRegistryUrl);
+
         return properties;
     }
 
@@ -49,6 +60,9 @@ public class TestActorFactory {
         Properties properties = new Properties();
         properties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServer);
         properties.put(ProducerConfig.CLIENT_ID_CONFIG, "test-producer-" + randomAlphabetic(8));
+
+        if (!Objects.equals(schemaRegistryUrl, ""))
+            properties.put(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, schemaRegistryUrl);
 
         return properties;
     }

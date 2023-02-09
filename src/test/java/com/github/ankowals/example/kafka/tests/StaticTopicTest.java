@@ -35,8 +35,9 @@ public class StaticTopicTest extends TestBase {
     @Test
     public void shouldConsumeProducedRecords() throws InterruptedException {
         testProducer.produce("terefere");
-        String bodyOfMessage = testConsumer.getRecord();
-        assertThat(bodyOfMessage).isEqualTo("terefere");
+        String message = testConsumer.getRecord();
+
+        assertThat(message).isEqualTo("terefere");
     }
 
     private void createTopic(String topic) throws ExecutionException, InterruptedException, TimeoutException {

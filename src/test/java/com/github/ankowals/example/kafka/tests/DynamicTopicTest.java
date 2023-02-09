@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.IntStream;
@@ -26,13 +27,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 @MicronautTest
 public class DynamicTopicTest extends TestBase {
 
-    private TestActorFactory testActorFactory;
+    private TestActorFactory actorFactory;
     private String topic;
 
     @BeforeEach
     void setup() throws ExecutionException, InterruptedException, TimeoutException {
         this.topic = randomAlphabetic(8);
-        this.testActorFactory = new TestActorFactory(getProperties().get("kafka.bootstrap.servers"));
+        this.actorFactory = new TestActorFactory(getProperties().get("kafka.bootstrap.servers"));
 
         createTopic(topic);
     }
@@ -41,32 +42,32 @@ public class DynamicTopicTest extends TestBase {
     public void shouldConsumeProducedRecords() throws InterruptedException {
         Integer randomNumber = nextInt();
 
-        TestProducer<String, Integer> producer = testActorFactory.createProducer(StringSerializer.class, IntegerSerializer.class);
-        TestConsumer<String, Integer> consumer = testActorFactory.createConsumer(StringDeserializer.class, IntegerDeserializer.class);
+        TestProducer<String, Integer> producer = actorFactory.createProducer(StringSerializer.class, IntegerSerializer.class);
+        TestConsumer<String, Integer> consumer = actorFactory.createConsumer(StringDeserializer.class, IntegerDeserializer.class);
 
-        consumer.subscribe(topic);
-        producer.produceAndClose(topic, randomNumber);
-        List<Integer> bodiesOfMessage = consumer.consumeAndClose();
+        producer.produce(topic, randomNumber);
+        List<Integer> message = consumer.consume(topic);
 
-        assertThat(bodiesOfMessage.size()).isEqualTo(1);
-        assertThat(bodiesOfMessage.get(bodiesOfMessage.size() - 1)).isEqualTo(randomNumber);
+        assertThat(message.size()).isEqualTo(1);
+        assertThat(message.get(message.size() - 1)).isEqualTo(randomNumber);
     }
 
     @Test
     public void shouldConsumeProducedRecordsUntilConditionIsFulfilled() throws InterruptedException {
-        TestProducer<String, String> producer = testActorFactory.createProducer(StringSerializer.class, StringSerializer.class);
-        TestConsumer<String, String> consumer = testActorFactory.createConsumer(StringDeserializer.class, StringDeserializer.class);
+        TestProducer<String, String> producer = actorFactory.createProducer(StringSerializer.class, StringSerializer.class);
+        TestConsumer<String, String> consumer = actorFactory.createConsumer(StringDeserializer.class, StringDeserializer.class);
 
-        consumer.subscribe(topic);
+        Executors.newSingleThreadExecutor().submit(() -> {
+            (IntStream.range(1, 2000))
+                    .forEach(i -> producer.send(topic, "terefere-" + i));
 
-        (IntStream.range(1, 1000)).parallel()
-                .forEach(i -> producer.produce(topic, "terefere-" + i));
+            producer.close();
+        });
 
-        producer.close();
-        List<String> bodiesOfMessage = consumer.consumeUntil(list -> list.size() == 999);
+        List<String> messages = consumer.consumeUntil(topic, list -> list.size() == 1999);
 
-        assertThat(bodiesOfMessage.size()).isEqualTo(999);
-        assertThat(bodiesOfMessage).contains("terefere-999");
+        assertThat(messages.size()).isEqualTo(1999);
+        assertThat(messages).contains("terefere-1999");
     }
 
     private void createTopic(String topic) throws ExecutionException, InterruptedException, TimeoutException {

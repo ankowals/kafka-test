@@ -18,6 +18,7 @@ public class TestConsumer<K, V> {
     private final List<V> actual;
     private final ExecutorService service;
     private Future<?> consumingTask;
+    private String topic;
 
     TestConsumer(KafkaConsumer<K, V> kafkaConsumer) {
         this.actual = new CopyOnWriteArrayList<>();
@@ -26,6 +27,10 @@ public class TestConsumer<K, V> {
     }
 
     public TestConsumer<K, V> subscribe(String topic) {
+        if (isNullOrEmpty(topic)) {
+            throw new IllegalArgumentException("Topic can't be null or empty!");
+        }
+
         kafkaConsumer.subscribe(List.of(topic));
 
         this.consumingTask = service.submit(() -> {
@@ -37,6 +42,8 @@ public class TestConsumer<K, V> {
             }
         });
 
+        this.topic = topic;
+
         return this;
     }
 
@@ -46,8 +53,15 @@ public class TestConsumer<K, V> {
         kafkaConsumer.close();
     }
 
-    public List<V> consumeAndClose() throws InterruptedException {
+    public List<V> consume(String topic) throws InterruptedException {
         try {
+            if (isNullOrEmpty(topic)) {
+                throw new IllegalArgumentException("Topic can't be null or empty!");
+            }
+            if (!topic.equals(this.topic)) {
+                subscribe(topic);
+            }
+
             return consume();
         } finally {
             close();
@@ -55,6 +69,10 @@ public class TestConsumer<K, V> {
     }
 
     public List<V> consume() {
+        if (this.topic == null) {
+            throw new IllegalStateException("Topic subscription not found! Call subscribe() first!");
+        }
+
         List<V> copy = getActual();
         actual.clear();
 
@@ -62,11 +80,37 @@ public class TestConsumer<K, V> {
     }
 
     public V consumeLatest() {
+        if (this.topic == null) {
+            throw new IllegalStateException("Topic subscription not found! Call subscribe() first!");
+        }
+
         return actual.get(actual.size() - 1);
     }
 
-    public List<V> consumeUntil(Predicate<List<V>> predicate) throws InterruptedException {
+    public V consumeLatest(String topic) throws InterruptedException {
         try {
+            if (isNullOrEmpty(topic)) {
+                throw new IllegalArgumentException("Topic can't be null or empty!");
+            }
+            if (!topic.equals(this.topic)) {
+                subscribe(topic);
+            }
+
+            return consumeLatest();
+        } finally {
+            close();
+        }
+    }
+
+    public List<V> consumeUntil(String topic, Predicate<List<V>> predicate) throws InterruptedException {
+        try {
+            if (isNullOrEmpty(topic)) {
+                throw new IllegalArgumentException("Topic can't be null or empty!");
+            }
+            if (!topic.equals(this.topic)) {
+                subscribe(topic);
+            }
+
             Callable<List<V>> supplier = this::getActual;
             return await().until(supplier, predicate);
         } finally {
@@ -76,5 +120,9 @@ public class TestConsumer<K, V> {
 
     private List<V> getActual() {
         return List.copyOf(actual);
+    }
+
+    private boolean isNullOrEmpty(String s) {
+        return s == null || s.equals("");
     }
 }
