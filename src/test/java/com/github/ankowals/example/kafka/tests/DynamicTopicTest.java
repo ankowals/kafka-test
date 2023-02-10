@@ -42,8 +42,8 @@ public class DynamicTopicTest extends TestBase {
     public void shouldConsumeProducedRecords() throws InterruptedException {
         Integer randomNumber = nextInt();
 
-        TestProducer<String, Integer> producer = actorFactory.createProducer(StringSerializer.class, IntegerSerializer.class);
-        TestConsumer<String, Integer> consumer = actorFactory.createConsumer(StringDeserializer.class, IntegerDeserializer.class);
+        TestProducer<String, Integer> producer = actorFactory.producer(StringSerializer.class, IntegerSerializer.class);
+        TestConsumer<String, Integer> consumer = actorFactory.consumer(StringDeserializer.class, IntegerDeserializer.class);
 
         producer.produce(topic, randomNumber);
         List<Integer> message = consumer.consume(topic);
@@ -54,8 +54,8 @@ public class DynamicTopicTest extends TestBase {
 
     @Test
     public void shouldConsumeProducedRecordsUntilConditionIsFulfilled() throws InterruptedException {
-        TestProducer<String, String> producer = actorFactory.createProducer(StringSerializer.class, StringSerializer.class);
-        TestConsumer<String, String> consumer = actorFactory.createConsumer(StringDeserializer.class, StringDeserializer.class);
+        TestProducer<String, String> producer = actorFactory.producer(StringSerializer.class, StringSerializer.class);
+        TestConsumer<String, String> consumer = actorFactory.consumer(StringDeserializer.class, StringDeserializer.class);
 
         Executors.newSingleThreadExecutor().submit(() -> {
             (IntStream.range(1, 2000))

@@ -27,7 +27,7 @@ public class TestActorFactory {
         this.schemaRegistryUrl = schemaRegistryUrl;
     }
 
-    public <K, V> TestConsumer<K, V> createConsumer(Class<? extends Deserializer> keyDeserializerClass, Class<? extends Deserializer> valueDeserializerClass) {
+    public <K, V> TestConsumer<K, V> consumer(Class<? extends Deserializer> keyDeserializerClass, Class<? extends Deserializer> valueDeserializerClass) {
         Properties properties = consumerProperties();
         properties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, keyDeserializerClass.getName());
         properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, valueDeserializerClass.getName());
@@ -35,7 +35,7 @@ public class TestActorFactory {
         return new TestConsumer<>(new KafkaConsumer<>(properties));
     }
 
-    public <K, V> TestProducer<K, V> createProducer(Class<? extends Serializer> keySerializerClass, Class<? extends Serializer> valueSerializerClass) {
+    public <K, V> TestProducer<K, V> producer(Class<? extends Serializer> keySerializerClass, Class<? extends Serializer> valueSerializerClass) {
         Properties properties = producerProperties();
         properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, keySerializerClass.getName());
         properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, valueSerializerClass.getName());
