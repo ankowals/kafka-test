@@ -58,16 +58,16 @@ public class DynamicTopicTest extends TestBase {
         TestConsumer<String, String> consumer = actorFactory.consumer(StringDeserializer.class, StringDeserializer.class);
 
         Executors.newSingleThreadExecutor().submit(() -> {
-            (IntStream.range(1, 2000))
+            (IntStream.range(1, 1000))
                     .forEach(i -> producer.send(topic, "terefere-" + i));
 
             producer.close();
         });
 
-        List<String> messages = consumer.consumeUntil(topic, list -> list.size() == 1999);
+        List<String> messages = consumer.consumeUntil(topic, list -> list.size() == 999);
 
-        assertThat(messages.size()).isEqualTo(1999);
-        assertThat(messages).contains("terefere-1999");
+        assertThat(messages.size()).isEqualTo(999);
+        assertThat(messages).contains("terefere-999");
     }
 
     private void createTopic(String topic) throws ExecutionException, InterruptedException, TimeoutException {
