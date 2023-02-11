@@ -56,6 +56,10 @@ public class TestConsumer<K, V> {
         }
     }
 
+    public static <V> V getLast(List<V> list) {
+        return list != null && !list.isEmpty() ? list.get(list.size() - 1) : null;
+    }
+
     private void startConsuming() {
         this.service = Executors.newSingleThreadExecutor();
         this.consumingTask = service.submit(() -> {
