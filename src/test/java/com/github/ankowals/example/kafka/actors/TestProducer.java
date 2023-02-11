@@ -5,16 +5,18 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 
 public class TestProducer<K, V> {
 
+    private final String topic;
     private final KafkaProducer<K, V> kafkaProducer;
 
-    TestProducer(KafkaProducer<K, V> kafkaProducer) {
+    TestProducer(String topic, KafkaProducer<K, V> kafkaProducer) {
+        this.topic = topic;
         this.kafkaProducer = kafkaProducer;
     }
 
-    public void send(String topic, V value) { send(createRecord(topic, value)); }
+    public void send(V value) { send(createRecord(value)); }
 
-    public void send(String topic, K key, V value) {
-        send(createRecord(topic, key, value));
+    public void send(K key, V value) {
+        send(createRecord(key, value));
     }
 
     private void send(ProducerRecord<K, V> producerRecord) {
@@ -22,13 +24,13 @@ public class TestProducer<K, V> {
         kafkaProducer.flush();
     }
 
-    public void produce(String topic, V value) {
-        send(topic, value);
+    public void produce(V value) {
+        send(value);
         close();
     }
 
-    public void produce(String topic, K key, V value) {
-        send(topic, key, value);
+    public void produce(K key, V value) {
+        send(key, value);
         close();
     }
 
@@ -41,11 +43,11 @@ public class TestProducer<K, V> {
         kafkaProducer.close();
     }
 
-    private ProducerRecord<K, V> createRecord(String topic, V value) {
-        return new ProducerRecord<>(topic, value);
+    private ProducerRecord<K, V> createRecord(V value) {
+        return new ProducerRecord<>(this.topic, value);
     }
 
-    private ProducerRecord<K, V> createRecord(String topic, K key, V value) {
-        return new ProducerRecord<>(topic, key, value);
+    private ProducerRecord<K, V> createRecord(K key, V value) {
+        return new ProducerRecord<>(this.topic, key, value);
     }
 }

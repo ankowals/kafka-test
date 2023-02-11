@@ -9,118 +9,78 @@ import java.util.List;
 import java.util.concurrent.*;
 import java.util.function.Predicate;
 
-import static java.util.concurrent.TimeUnit.SECONDS;
-import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static org.awaitility.Awaitility.await;
 
 public class TestConsumer<K, V> {
 
     private final KafkaConsumer<K, V> kafkaConsumer;
-    private final List<V> actual;
-    private final ExecutorService service;
+    private final List<V> buffer;
+
+    private ExecutorService service;
     private Future<?> consumingTask;
-    private String topicName;
 
-    TestConsumer(KafkaConsumer<K, V> kafkaConsumer) {
-        this.actual = new CopyOnWriteArrayList<>();
+    TestConsumer(String topic, KafkaConsumer<K, V> kafkaConsumer) {
+        this.buffer = new CopyOnWriteArrayList<>();
         this.kafkaConsumer = kafkaConsumer;
-        this.service = Executors.newSingleThreadExecutor();
-    }
-
-    public TestConsumer<K, V> subscribe(String topic) {
-        validateTopic(topic);
-
-        kafkaConsumer.subscribe(List.of(topic));
-
-        this.consumingTask = service.submit(() -> {
-            while (!Thread.currentThread().isInterrupted()) {
-                ConsumerRecords<K, V> records = kafkaConsumer.poll(Duration.ofMillis(100));
-                for (ConsumerRecord<K, V> rec : records) {
-                    actual.add(rec.value());
-                }
-            }
-        });
-
-        this.topicName = topic;
-
-        return this;
-    }
-
-    public void close() throws InterruptedException {
-        consumingTask.cancel(true);
-        service.awaitTermination(1, SECONDS);
-        kafkaConsumer.close();
-    }
-
-    public List<V> consume(String topic) throws InterruptedException {
-        try {
-            validateTopic(topic);
-
-            if (!topic.equals(this.topicName)) {
-                subscribe(topic);
-            }
-
-            return consume();
-        } finally {
-            close();
-        }
+        this.kafkaConsumer.subscribe(List.of(validateTopic(topic)));
     }
 
     public List<V> consume() {
-        validateSubscription();
-
-        List<V> copy = getActual();
-        actual.clear();
-
-        return copy;
+        return consume(Duration.ofSeconds(1));
     }
 
-    public V consumeLatest() {
-        validateSubscription();
-
-        return actual.get(actual.size() - 1);
-    }
-
-    public V consumeLatest(String topic) throws InterruptedException {
+    public List<V> consume(Duration timeout) {
         try {
-            validateTopic(topic);
+            poll(timeout);
 
-            if (!topic.equals(this.topicName)) {
-                subscribe(topic);
-            }
+            List<V> copy = getBufferCopy();
+            buffer.clear();
 
-            return consumeLatest();
+            return copy;
         } finally {
-            close();
+            kafkaConsumer.close();
         }
     }
 
-    public List<V> consumeUntil(String topic, Predicate<List<V>> predicate) throws InterruptedException {
+    public List<V> consumeUntil(Predicate<List<V>> predicate) throws InterruptedException {
         try {
-            validateTopic(topic);
+            Callable<List<V>> supplier = this::getBufferCopy;
+            startConsuming();
 
-            if (!topic.equals(this.topicName)) {
-                subscribe(topic);
-            }
-
-            Callable<List<V>> supplier = this::getActual;
             return await().until(supplier, predicate);
         } finally {
-            close();
+            service.awaitTermination(300, MILLISECONDS);
+            consumingTask.cancel(true);
+            buffer.clear();
         }
     }
 
-    private List<V> getActual() {
-        return List.copyOf(actual);
+    private void startConsuming() {
+        this.service = Executors.newSingleThreadExecutor();
+        this.consumingTask = service.submit(() -> {
+            while (!Thread.currentThread().isInterrupted()) {
+                poll(Duration.ofMillis(100));
+            }
+        });
     }
 
-    private void validateTopic(String name) {
+    private void poll(Duration duration) {
+        ConsumerRecords<K, V> records = kafkaConsumer.poll(duration);
+        for (ConsumerRecord<K, V> rec : records) {
+            buffer.add(rec.value());
+        }
+    }
+
+    private List<V> getBufferCopy() {
+        return List.copyOf(buffer);
+    }
+
+    private String validateTopic(String name) {
         if (isNullOrEmpty(name))
             throw new IllegalArgumentException("Topic name can't be null or empty!");
-    }
 
-    private void validateSubscription() {
-        if (this.topicName == null)
-            throw new IllegalStateException("Topic subscription not found! Call subscribe() first!");
+        return name;
     }
 
     private boolean isNullOrEmpty(String s) {
