@@ -28,7 +28,7 @@
                 "null",
                 {
                     "type": "record",
-                    "name": "actor",
+                    "name": "performer",
                     "fields": [
                         {
                             "name": "name",
