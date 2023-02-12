@@ -1,0 +1,54 @@
+{
+    "type": "record",
+    "name": "Subscriber",
+    "namespace": "com.github.ankowals.example.kafka",
+    "fields": [
+        {
+            "name": "id",
+            "type": "int",
+            "default": 0
+        },
+        {
+            "name": "fname",
+            "type": "string",
+            "default" : "EMPTY"
+        },
+        {
+            "name": "lname",
+            "type": "string",
+            "default" : "EMPTY"
+        },
+        {
+            "name": "phone_number",
+            "type": "string",
+            "default" : "EMPTY"
+        },
+        {
+            "name": "age",
+            "type": "int",
+            "default" : 0
+        },
+        {
+            "name": "emailAddresses",
+            "type": {
+                "type": "array",
+                "items": {
+                    "name": "EmailAddress",
+                    "type": "record",
+                    "fields": [
+                        {
+                            "name": "email",
+                            "type": "string",
+                            "default" : "EMPTY"
+                        },
+                        {
+                            "name": "address",
+                            "type": "boolean",
+                            "default": false
+                        }
+                    ]
+                }
+            }
+        }
+    ]
+}

@@ -1,0 +1,41 @@
+{
+    "type": "record",
+    "name": "Actor",
+    "namespace": "com.github.ankowals.example.kafka",
+    "fields" : [
+        {
+            "name": "name",
+            "type": "string"
+        },
+        {
+            "name": "movies"
+            "type": {
+                "type": "array",
+                "items": {
+                    "type": "record",
+                    "name": "Movie",
+                    "fields": [
+                        {
+                            "name": "details",
+                            "type": [
+                                "null",
+                                {
+                                    "type": "map",
+                                    "values": "bytes"
+                                }
+                            ],
+                            "default": null
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "id",
+            "type": {
+                "type: "string"
+                "logicalType": "uuid"
+            }
+        }
+    ]
+}

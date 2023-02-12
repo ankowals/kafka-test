@@ -56,7 +56,7 @@ public class TestConsumer<K, V> {
         }
     }
 
-    public static <V> V getLast(List<V> list) {
+    public static <T> T getLast(List<T> list) {
         return list != null && !list.isEmpty() ? list.get(list.size() - 1) : null;
     }
 

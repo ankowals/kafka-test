@@ -1,7 +1,5 @@
 package com.github.ankowals.example.kafka.tests;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.ankowals.example.kafka.User;
 import com.github.ankowals.example.kafka.actors.TestConsumer;
 import com.github.ankowals.example.kafka.actors.TestActorFactory;
 import com.github.ankowals.example.kafka.actors.TestProducer;
@@ -24,14 +22,15 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
 import java.util.stream.IntStream;
 
 import static com.github.ankowals.example.kafka.actors.TestConsumer.getLast;
-import static com.github.ankowals.example.kafka.data.GenericRecordMapper.toGenericRecord;
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
 import static org.apache.commons.lang3.RandomUtils.nextInt;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
 public class DynamicTopicTest extends TestBase {
 
@@ -109,6 +108,31 @@ public class DynamicTopicTest extends TestBase {
     }
 
     @Test
+    public void shouldStartPollingFirst() {
+        TestProducer<String, Integer> producer = actorFactory.producer(topic, StringSerializer.class, IntegerSerializer.class);
+        TestConsumer<String, Integer> consumer = actorFactory.consumer(topic, StringDeserializer.class, IntegerDeserializer.class);
+
+        AtomicReference<List<Integer>> messages = new AtomicReference<>();
+
+        Executors.newSingleThreadExecutor().submit(() -> {
+            try {
+                messages.set(consumer.consumeUntil(list -> list.contains(459)));
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        });
+
+        Executors.newSingleThreadExecutor().submit(() -> {
+            (IntStream.range(1, 1000)).forEach(producer::send);
+            producer.close();
+        });
+
+        await().until(() -> messages.get() != null);
+
+        assertThat(messages.get().size()).isGreaterThanOrEqualTo(459);
+    }
+
+    @Test
     public void shouldConsumeGenericRecord() throws IOException {
         TestProducer<Bytes, Object> producer = actorFactory.producer(topic);
         TestConsumer<Bytes, GenericRecord> consumer = actorFactory.consumer(topic);
@@ -127,38 +151,6 @@ public class DynamicTopicTest extends TestBase {
 
         assertThat(message.toString())
                 .isEqualTo("{\"name\": \"John\", \"favorite_number\": 7, \"favorite_color\": \"blue\"}");
-
-        User actual = new ObjectMapper().readValue(String.valueOf(message), User.class);
-
-        assertThat(actual.getName()).isEqualTo("John");
-        assertThat(actual.getFavorite_color()).isEqualTo("blue");
-        assertThat(actual.getFavorite_number()).isEqualTo(7);
-    }
-
-    @Test
-    public void shouldConvertToGenericRecord() throws IOException {
-        TestProducer<Bytes, Object> producer = actorFactory.producer(topic);
-        TestConsumer<Bytes, GenericRecord> consumer = actorFactory.consumer(topic);
-
-        Schema.Parser parser = new Schema.Parser();
-        Schema schema = parser.parse(getClass().getResourceAsStream("/user.avro"));
-
-        User user = new User("Joe", 1, "red");
-
-        //GenericRecord record = mapToGenericRecord(user, schema);
-        GenericRecord record = toGenericRecord(user, schema);
-
-        producer.produce(record);
-        GenericRecord message = getLast(consumer.consume());
-
-        assertThat(message.toString())
-                .isEqualTo("{\"name\": \"Joe\", \"favorite_number\": 1, \"favorite_color\": \"red\"}");
-
-        User actual = new ObjectMapper().readValue(String.valueOf(message), User.class);
-
-        assertThat(actual.getName()).isEqualTo("Joe");
-        assertThat(actual.getFavorite_color()).isEqualTo("red");
-        assertThat(actual.getFavorite_number()).isEqualTo(1);
     }
 
     private Predicate<List<Integer>> anyRecordFound() {

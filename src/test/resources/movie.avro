@@ -1,0 +1,73 @@
+{
+    "type": "record",
+    "name": "Movie",
+    "namespace": "com.github.ankowals.example.kafka",
+    "fields" : [
+        {
+            "name": "title",
+            "type": "string"
+        },
+        {
+            "name": "id",
+            "type": {
+                "type": "string"
+                "logicalType": "uuid"
+            }
+        },
+        {
+            "name": "genere",
+            "type": [
+                "null",
+                "string"
+            ],
+            "default": null
+        },
+        {
+            "name": "cast"
+            "type": [
+                "null",
+                {
+                    "type": "record",
+                    "name": "actor",
+                    "fields": [
+                        {
+                            "name": "name",
+                            "type": "string"
+                        }
+                        {
+                            "name": "sex",
+                            "type": "string"
+                        },
+                        {
+                            "name": "rewards",
+                            "type": [
+                                "null",
+                                {
+                                    "type": "map",
+                                    "values": "bytes"
+                                }
+                            ],
+                            "default": null
+                        }
+                    ]
+                }
+            ],
+            "default": null
+        },
+        {
+            "name": "availability",
+            "type": "boolean"
+        },
+        {
+            "name": "recommendations",
+            "type": [
+                "null",
+                {
+                    "type": "map",
+                    "values": "bytes"
+                }
+            ],
+            "default": null
+        }
+    ]
+}
