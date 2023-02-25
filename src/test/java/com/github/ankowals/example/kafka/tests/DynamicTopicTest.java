@@ -1,10 +1,10 @@
 package com.github.ankowals.example.kafka.tests;
 
-import com.github.ankowals.example.kafka.actors.TestConsumer;
+import com.github.ankowals.example.kafka.actors.SchemaReader;
+import com.github.ankowals.example.kafka.framework.actors.TestConsumer;
 import com.github.ankowals.example.kafka.actors.TestActorFactory;
-import com.github.ankowals.example.kafka.actors.TestProducer;
-import com.github.ankowals.example.kafka.actors.TopicCreator;
-import com.github.ankowals.example.kafka.base.TestBase;
+import com.github.ankowals.example.kafka.framework.actors.TestProducer;
+import com.github.ankowals.example.kafka.TestBase;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
@@ -14,19 +14,19 @@ import org.apache.kafka.common.serialization.IntegerSerializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.common.utils.Bytes;
+import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
+import java.util.Set;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
 import java.util.stream.IntStream;
 
-import static com.github.ankowals.example.kafka.actors.TestConsumer.getLast;
+import static com.github.ankowals.example.kafka.framework.actors.TestTopicCreateCommand.createTopics;
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
 import static org.apache.commons.lang3.RandomUtils.nextInt;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -38,13 +38,13 @@ public class DynamicTopicTest extends TestBase {
     private String topic;
 
     @BeforeEach
-    void setup() throws ExecutionException, InterruptedException, TimeoutException {
-        this.topic = randomAlphabetic(8);
+    void setup() throws Exception {
+        this.topic = randomAlphabetic(11);
         this.actorFactory = new TestActorFactory(
                 getProperties().get("kafka.bootstrap.servers"),
                 getProperties().get("kafka.schema.registry.url"));
 
-        new TopicCreator(getAdminClient()).create(topic);
+        createTopics(Set.of(topic)).run(getAdminClient());
     }
 
     @Test
@@ -87,7 +87,7 @@ public class DynamicTopicTest extends TestBase {
             producer.close();
         });
 
-        Integer message = getLast(consumer.consumeUntil(list -> list.contains(999)));
+        Integer message = consumer.consumeUntilMatch(number -> number == 999);
 
         assertThat(message).isEqualTo(999);
     }
@@ -133,24 +133,25 @@ public class DynamicTopicTest extends TestBase {
     }
 
     @Test
-    public void shouldConsumeGenericRecord() throws IOException {
+    public void shouldConsumeGenericRecord() throws IOException, InterruptedException {
         TestProducer<Bytes, Object> producer = actorFactory.producer(topic);
         TestConsumer<Bytes, GenericRecord> consumer = actorFactory.consumer(topic);
 
-        Schema.Parser parser = new Schema.Parser();
-        Schema schema = parser.parse(getClass().getResourceAsStream("/user.avro"));
+        Schema schema = new SchemaReader().read("user.avro");
+
+        String name = randomAlphabetic(11);
 
         GenericData.Record record = new GenericRecordBuilder(schema)
-                .set("name", "John")
+                .set("name", name)
                 .set("favorite_number", 7)
                 .set("favorite_color", "blue")
                 .build();
 
         producer.produce(record);
-        GenericRecord message = getLast(consumer.consume());
+        GenericRecord message = consumer.consumeUntilMatch(recordNameEquals(name));
 
         assertThat(message.toString())
-                .isEqualTo("{\"name\": \"John\", \"favorite_number\": 7, \"favorite_color\": \"blue\"}");
+                .isEqualTo("{\"name\": \"" + name + "\", \"favorite_number\": 7, \"favorite_color\": \"blue\"}");
     }
 
     private Predicate<List<Integer>> anyRecordFound() {
@@ -159,5 +160,9 @@ public class DynamicTopicTest extends TestBase {
 
     private Predicate<List<String>> numberOfRecordsIs(int number) {
         return list -> list.size() == number;
+    }
+
+    private Predicate<GenericRecord> recordNameEquals(String name) {
+        return genericRecord -> new JSONObject(genericRecord.toString()).getString("name").equals(name);
     }
 }

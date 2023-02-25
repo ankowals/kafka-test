@@ -1,4 +1,4 @@
-package com.github.ankowals.example.kafka.actors;
+package com.github.ankowals.example.kafka.framework.actors;
 
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -8,7 +8,7 @@ public class TestProducer<K, V> {
     private final String topic;
     private final KafkaProducer<K, V> kafkaProducer;
 
-    TestProducer(String topic, KafkaProducer<K, V> kafkaProducer) {
+    public TestProducer(String topic, KafkaProducer<K, V> kafkaProducer) {
         this.topic = topic;
         this.kafkaProducer = kafkaProducer;
     }

@@ -53,6 +53,11 @@ dependencies {
     compileOnly 'org.projectlombok:lombok:1.18.26'
     annotationProcessor "org.projectlombok:lombok:1.18.26"
     testAnnotationProcessor("org.projectlombok:lombok:1.18.26")
+
+    testImplementation 'org.json:json:20220924'
+    testImplementation('com.github.tomakehurst:wiremock-standalone:3.0.0-beta-2') {
+        exclude group: 'org.slf4j', module: 'slf4j-api'
+    }
 }
 
 test {

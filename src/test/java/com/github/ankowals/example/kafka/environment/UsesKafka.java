@@ -1,5 +1,6 @@
 package com.github.ankowals.example.kafka.environment;
 
+import com.github.ankowals.example.kafka.framework.environment.Kafka;
 import org.apache.kafka.clients.admin.AdminClient;
 
 import java.util.HashMap;

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.ankowals.example.kafka.EmailAddress;
 import com.github.ankowals.example.kafka.Subscriber;
 import com.github.ankowals.example.kafka.User;
+import com.github.ankowals.example.kafka.actors.SchemaReader;
 import com.github.ankowals.example.kafka.data.GenericRecordJacksonMapper;
 import com.github.ankowals.example.kafka.data.builders.SubscriberRecordBuilder;
 import net.javacrumbs.jsonunit.core.Option;
@@ -22,10 +23,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class GenericRecordTest {
 
+    private static final SchemaReader schemaReader = new SchemaReader();
+
     @Test
     public void shouldConvertToGenericRecord() throws IOException {
-        Schema.Parser parser = new Schema.Parser();
-        Schema schema = parser.parse(getClass().getResourceAsStream("/user.avro"));
+        Schema schema = schemaReader.read("user.avro");
 
         User user = new User("Joe", 1, "red");
 
@@ -45,8 +47,7 @@ public class GenericRecordTest {
 
     @Test
     public void shouldConvertToGenericRecordUsingJacksonMapper() throws IOException {
-        Schema.Parser parser = new Schema.Parser();
-        Schema schema = parser.parse(getClass().getResourceAsStream("/user.avro"));
+        Schema schema = schemaReader.read("user.avro");
 
         User user = new User("Joe", 1, "red");
 
@@ -102,7 +103,7 @@ public class GenericRecordTest {
                 .emailAddress(EmailAddress.builder().email("fourth@terefere.com").build())
                 .build();
 
-        Schema schema = new Schema.Parser().parse(getClass().getResourceAsStream("/subscriber.avro"));
+        Schema schema = schemaReader.read("subscriber.avro");
         GenericRecord record = toGenericRecord(subscriber, schema);
 
         System.out.println(record.toString());

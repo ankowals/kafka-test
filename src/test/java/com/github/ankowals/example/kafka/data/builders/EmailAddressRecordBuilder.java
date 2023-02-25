@@ -1,5 +1,6 @@
 package com.github.ankowals.example.kafka.data.builders;
 
+import com.github.ankowals.example.kafka.actors.SchemaReader;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
@@ -12,7 +13,7 @@ public class EmailAddressRecordBuilder {
     private final GenericRecord record;
 
     public EmailAddressRecordBuilder() throws IOException {
-        this.schema = new Schema.Parser().parse(getClass().getResourceAsStream("/subscriber.avro"))
+        this.schema = new SchemaReader().read("subscriber.avro")
                 .getField("emailAddresses")
                 .schema()
                 .getElementType();

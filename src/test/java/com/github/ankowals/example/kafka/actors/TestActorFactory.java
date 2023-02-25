@@ -1,7 +1,10 @@
 package com.github.ankowals.example.kafka.actors;
 
+import com.github.ankowals.example.kafka.framework.actors.TestConsumer;
+import com.github.ankowals.example.kafka.framework.actors.TestProducer;
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
+import io.confluent.kafka.serializers.KafkaAvroSerializerConfig;
 import io.confluent.kafka.streams.serdes.avro.GenericAvroDeserializer;
 import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -52,6 +55,9 @@ public class TestActorFactory {
         this.properties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, keyDeserializerClassName);
         this.properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, valueDeserializerClassName);
 
+        this.properties.put(ConsumerConfig.CLIENT_ID_CONFIG, "test-consumer-" + randomAlphabetic(11));
+        this.properties.put(ConsumerConfig.GROUP_ID_CONFIG, "test-consumer-group-" + randomAlphabetic(11));
+
         return new TestConsumer<>(topic, new KafkaConsumer<>(this.properties));
     }
 
@@ -69,21 +75,21 @@ public class TestActorFactory {
         this.properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, keySerializerClassName);
         this.properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, valueSerializerClassName);
 
+        this.properties.put(ProducerConfig.CLIENT_ID_CONFIG, "test-producer-" + randomAlphabetic(11));
+
         return new TestProducer<>(topic, new KafkaProducer<>(this.properties));
     }
 
     private void setConsumerProperties() {
-        this.properties.put(ConsumerConfig.GROUP_ID_CONFIG, "testConsumersGroup-" + randomAlphabetic(8));
         this.properties.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-        this.properties.put(ConsumerConfig.CLIENT_ID_CONFIG, "test-consumer-" + randomAlphabetic(8));
-        this.properties.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, true);
+        this.properties.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
         this.properties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, BytesDeserializer.class.getName());
         this.properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, GenericAvroDeserializer.class.getName());
     }
 
     private void setProducerProperties() {
-        this.properties.put(ProducerConfig.CLIENT_ID_CONFIG, "test-producer-" + randomAlphabetic(8));
         this.properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, BytesSerializer.class.getName());
         this.properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, KafkaAvroSerializer.class.getName());
+        this.properties.put(KafkaAvroSerializerConfig.AVRO_USE_LOGICAL_TYPE_CONVERTERS_CONFIG, true);
     }
 }

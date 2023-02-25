@@ -1,4 +1,4 @@
-package com.github.ankowals.example.kafka.actors;
+package com.github.ankowals.example.kafka.framework.actors;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -14,20 +14,22 @@ import static org.awaitility.Awaitility.await;
 
 public class TestConsumer<K, V> {
 
+    private static final Duration DEFAULT_TIMEOUT = Duration.ofSeconds(5);
+
     private final KafkaConsumer<K, V> kafkaConsumer;
     private final List<V> buffer;
 
     private ExecutorService service;
     private Future<?> consumingTask;
 
-    TestConsumer(String topic, KafkaConsumer<K, V> kafkaConsumer) {
+    public TestConsumer(String topic, KafkaConsumer<K, V> kafkaConsumer) {
         this.buffer = new CopyOnWriteArrayList<>();
         this.kafkaConsumer = kafkaConsumer;
         this.kafkaConsumer.subscribe(List.of(validateTopic(topic)));
     }
 
     public List<V> consume() {
-        return consume(Duration.ofSeconds(1));
+        return consume(DEFAULT_TIMEOUT);
     }
 
     public List<V> consume(Duration timeout) {
@@ -44,20 +46,34 @@ public class TestConsumer<K, V> {
     }
 
     public List<V> consumeUntil(Predicate<List<V>> predicate) throws InterruptedException {
+        return consumeUntil(predicate, DEFAULT_TIMEOUT);
+    }
+
+    public List<V> consumeUntil(Predicate<List<V>> predicate, Duration timeout) throws InterruptedException {
         try {
             Callable<List<V>> supplier = this::getBufferCopy;
             startConsuming();
 
-            return await().until(supplier, predicate);
+            return await().atMost(timeout).until(supplier, predicate);
         } finally {
+            buffer.clear();
             service.awaitTermination(300, MILLISECONDS);
             consumingTask.cancel(true);
-            buffer.clear();
         }
     }
 
-    public static <T> T getLast(List<T> list) {
-        return list != null && !list.isEmpty() ? list.get(list.size() - 1) : null;
+    public V consumeUntilMatch(Predicate<V> predicate) throws InterruptedException {
+        return consumeUntilMatch(predicate, DEFAULT_TIMEOUT);
+    }
+
+    public V consumeUntilMatch(Predicate<V> predicate, Duration timeout) throws InterruptedException {
+        return getMatching(consumeUntil(list -> list.stream().anyMatch(predicate), timeout), predicate);
+    }
+
+    private static <T> T getMatching(List<T> list, Predicate<T> predicate) {
+        return list != null && !list.isEmpty()
+                ? list.stream().filter(predicate).findAny().orElse(null)
+                : null;
     }
 
     private void startConsuming() {
@@ -73,6 +89,7 @@ public class TestConsumer<K, V> {
         ConsumerRecords<K, V> records = kafkaConsumer.poll(duration);
         for (ConsumerRecord<K, V> rec : records) {
             buffer.add(rec.value());
+            kafkaConsumer.commitSync();
         }
     }
 

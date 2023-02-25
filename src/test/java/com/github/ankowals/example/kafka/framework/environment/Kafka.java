@@ -1,11 +1,10 @@
-package com.github.ankowals.example.kafka.environment;
+package com.github.ankowals.example.kafka.framework.environment;
 
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.testcontainers.containers.KafkaContainer;
 import org.testcontainers.utility.DockerImageName;
 
-import java.sql.SQLException;
 import java.util.Properties;
 
 public class Kafka {
@@ -13,7 +12,7 @@ public class Kafka {
     private final KafkaContainer container;
     private final AdminClient adminClient;
 
-    private Kafka(DockerImageName dockerImageName) throws SQLException {
+    private Kafka(DockerImageName dockerImageName) {
         this.container = createContainer(dockerImageName);
         container.start();
 
@@ -21,9 +20,16 @@ public class Kafka {
     }
 
     public static Kafka start() {
+        return new Kafka(DockerImageName.parse("confluentinc/cp-kafka:7.3.1"));
+    }
+
+    public static Kafka start(AdminClientCommand adminClientCommand) {
         try {
-            return new Kafka(DockerImageName.parse("confluentinc/cp-kafka:7.3.1"));
-        } catch (SQLException e) {
+            Kafka kafka = start();
+            adminClientCommand.run(kafka.getAdminClient());
+
+            return kafka;
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }

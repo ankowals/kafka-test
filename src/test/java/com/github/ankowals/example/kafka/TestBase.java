@@ -1,4 +1,4 @@
-package com.github.ankowals.example.kafka.base;
+package com.github.ankowals.example.kafka;
 
 import com.github.ankowals.example.kafka.environment.UsesKafka;
 import io.micronaut.core.annotation.NonNull;

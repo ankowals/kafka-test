@@ -1,5 +1,6 @@
 package com.github.ankowals.example.kafka.data.builders;
 
+import com.github.ankowals.example.kafka.actors.SchemaReader;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
@@ -15,7 +16,7 @@ public class SubscriberRecordBuilder {
     private final List<GenericRecord> emailAddressesList;
 
     public SubscriberRecordBuilder() throws IOException {
-        this.schema = new Schema.Parser().parse(getClass().getResourceAsStream("/subscriber.avro"));
+        this.schema = new SchemaReader().read("subscriber.avro");
         this.record = new GenericData.Record(schema);
         this.emailAddressesList = new ArrayList();
     }
@@ -62,32 +63,4 @@ public class SubscriberRecordBuilder {
         this.record.put("emailAddresses", emailAddressesList);
         return record;
     }
-
-        /*
-    GenericData.Record avroRecord = new GenericData.Record(SchemaRegstryClient.getLatestSchema("test2"));
-        System.out.println(avroRecord.getSchema().getFields());
-        avroRecord.put("id", i);
-        avroRecord.put("fName", "Sumit" + i);
-        avroRecord.put("lName", "Gupta " +i);
-        avroRecord.put("phone_number", "98911 " +i);
-        avroRecord.put("age", i);
-        avroRecord.put("emailAddresses.email", "sumit@gmail.com");
-        avroRecord.put("emailAddresses.address", true);
-
-        final GenericData.Record emailAddresses = new GenericData.Record(schema.getField("emailAddresses").schema());
-emailAddresses.put("email", "sumit@gmail.com");
-emailAddresses.put("address", true);
-avroRecord.put("emailAddresses", emailAddresses);
-
-
- GenericRecord emailRecord = ((GenericRecord) record.get("emailAddresses")).get("email")
-
-
-         GenericRecord friend1 = new GenericData.Record(childSchema);
-        friend1.put("Name", "1");
-        friend1.put("phoneNumber", "2");
-        friend1.put("email", "3");
-        friendList.add(friend1);
-        record.put("friends", friendList);
-     */
 }
