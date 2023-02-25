@@ -8,7 +8,7 @@ import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import static com.github.ankowals.example.kafka.framework.actors.TestTopicCreateCommand.createTopics;
+import static com.github.ankowals.example.kafka.framework.environment.kafka.TestTopicCreateCommand.createTopics;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @MicronautTest

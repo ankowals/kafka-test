@@ -1,6 +1,5 @@
-package com.github.ankowals.example.kafka.framework.actors;
+package com.github.ankowals.example.kafka.framework.environment.kafka;
 
-import com.github.ankowals.example.kafka.framework.environment.AdminClientCommand;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.ListTopicsOptions;
 import org.apache.kafka.clients.admin.NewTopic;

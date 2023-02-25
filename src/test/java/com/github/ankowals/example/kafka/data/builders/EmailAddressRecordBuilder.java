@@ -1,6 +1,6 @@
 package com.github.ankowals.example.kafka.data.builders;
 
-import com.github.ankowals.example.kafka.actors.SchemaReader;
+import com.github.ankowals.example.kafka.framework.environment.kafka.SchemaReader;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;

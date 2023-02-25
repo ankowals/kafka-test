@@ -1,6 +1,6 @@
 package com.github.ankowals.example.kafka.tests;
 
-import com.github.ankowals.example.kafka.actors.SchemaReader;
+import com.github.ankowals.example.kafka.framework.environment.kafka.SchemaReader;
 import com.github.ankowals.example.kafka.framework.actors.TestConsumer;
 import com.github.ankowals.example.kafka.actors.TestActorFactory;
 import com.github.ankowals.example.kafka.framework.actors.TestProducer;
@@ -25,7 +25,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
 import java.util.stream.IntStream;
 
-import static com.github.ankowals.example.kafka.framework.actors.TestTopicCreateCommand.createTopics;
+import static com.github.ankowals.example.kafka.framework.environment.kafka.TestTopicCreateCommand.createTopics;
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
 import static org.apache.commons.lang3.RandomUtils.nextInt;
 import static org.assertj.core.api.Assertions.assertThat;

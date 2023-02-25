@@ -1,4 +1,4 @@
-package com.github.ankowals.example.kafka.framework.environment;
+package com.github.ankowals.example.kafka.framework.environment.wiremock;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.http.Request;

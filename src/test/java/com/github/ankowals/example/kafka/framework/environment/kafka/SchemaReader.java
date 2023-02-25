@@ -1,4 +1,4 @@
-package com.github.ankowals.example.kafka.actors;
+package com.github.ankowals.example.kafka.framework.environment.kafka;
 
 import com.github.ankowals.example.kafka.framework.ResourceUtils;
 import org.apache.avro.Schema;
