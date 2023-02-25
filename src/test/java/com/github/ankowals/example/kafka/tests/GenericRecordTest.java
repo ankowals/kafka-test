@@ -115,9 +115,9 @@ public class GenericRecordTest {
                 a -> a.node("phone_number").isString().isEqualTo("123456"),
                 a -> a.node("age").isEqualTo(17),
                 a -> a.node("emailAddresses").isArray().isEqualTo(json(
-                        "[{email: 'first@terefere.com', address: true}, " +
-                                "{email: 'second@terefere.com', address: true}, " +
-                                "{email: 'third@terefere.com', address: true}, " +
-                                "{email: 'fourth@terefere.com', address: true}]")));
+                        "[{email: 'first@terefere.com', address: false}, " +
+                                "{email: 'second@terefere.com', address: false}, " +
+                                "{email: 'third@terefere.com', address: false}, " +
+                                "{email: 'fourth@terefere.com', address: false}]")));
     }
 }

@@ -8,8 +8,6 @@ import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import java.util.Set;
-
 import static com.github.ankowals.example.kafka.framework.actors.TestTopicCreateCommand.createTopics;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -24,7 +22,7 @@ public class StaticTopicTest extends TestBase {
 
     @BeforeAll
     void setup() throws Exception {
-        createTopics(Set.of("testTopic")).run(getAdminClient());
+        createTopics("testTopic").run(getAdminClient());
     }
 
     @Test

@@ -20,7 +20,6 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
@@ -44,7 +43,7 @@ public class DynamicTopicTest extends TestBase {
                 getProperties().get("kafka.bootstrap.servers"),
                 getProperties().get("kafka.schema.registry.url"));
 
-        createTopics(Set.of(topic)).run(getAdminClient());
+        createTopics(topic).run(getAdminClient());
     }
 
     @Test

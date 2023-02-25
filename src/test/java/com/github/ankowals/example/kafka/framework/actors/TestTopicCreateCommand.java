@@ -5,9 +5,13 @@ import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.ListTopicsOptions;
 import org.apache.kafka.clients.admin.NewTopic;
 
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 public class TestTopicCreateCommand implements AdminClientCommand {
 
@@ -17,8 +21,8 @@ public class TestTopicCreateCommand implements AdminClientCommand {
         this.names = names;
     }
 
-    public static TestTopicCreateCommand createTopics(Set<String> names) {
-        return new TestTopicCreateCommand(names);
+    public static TestTopicCreateCommand createTopics(String... names) {
+        return new TestTopicCreateCommand(new HashSet<>(Arrays.asList(names)));
     }
 
     @Override
@@ -32,17 +36,17 @@ public class TestTopicCreateCommand implements AdminClientCommand {
         createTopics(topics, adminClient);
     }
 
-    private void createTopics(List<NewTopic> topics, AdminClient adminClient) throws ExecutionException, InterruptedException {
+    private void createTopics(List<NewTopic> topics, AdminClient adminClient) throws ExecutionException, InterruptedException, TimeoutException {
         adminClient.createTopics(topics)
                 .all()
-                .get();
+                .get(5, TimeUnit.SECONDS);
     }
 
-    private Set<String> getTopics(AdminClient adminClient) throws ExecutionException, InterruptedException {
+    private Set<String> getTopics(AdminClient adminClient) throws ExecutionException, InterruptedException, TimeoutException {
         ListTopicsOptions options = new ListTopicsOptions().listInternal(false);
 
         return adminClient.listTopics(options)
                 .names()
-                .get();
+                .get(5, TimeUnit.SECONDS);
     }
 }
