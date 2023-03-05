@@ -2,17 +2,17 @@ package com.github.ankowals.example.kafka.tests;
 
 import com.github.ankowals.example.kafka.actors.StaticTopicTestConsumer;
 import com.github.ankowals.example.kafka.actors.StaticTopicTestProducer;
-import com.github.ankowals.example.kafka.TestBase;
+import com.github.ankowals.example.kafka.IntegrationTestBase;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import static com.github.ankowals.example.kafka.framework.environment.kafka.TestTopicCreateCommand.createTopics;
+import static com.github.ankowals.example.kafka.framework.environment.kafka.commands.TopicCreateCommand.createTopics;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @MicronautTest
-public class StaticTopicTest extends TestBase {
+public class StaticTopicTest extends IntegrationTestBase {
 
     @Inject
     public StaticTopicTestProducer testProducer;

@@ -4,7 +4,7 @@ import com.github.ankowals.example.kafka.framework.environment.kafka.SchemaReade
 import com.github.ankowals.example.kafka.framework.actors.TestConsumer;
 import com.github.ankowals.example.kafka.actors.TestActorFactory;
 import com.github.ankowals.example.kafka.framework.actors.TestProducer;
-import com.github.ankowals.example.kafka.TestBase;
+import com.github.ankowals.example.kafka.IntegrationTestBase;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
@@ -25,13 +25,13 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
 import java.util.stream.IntStream;
 
-import static com.github.ankowals.example.kafka.framework.environment.kafka.TestTopicCreateCommand.createTopics;
+import static com.github.ankowals.example.kafka.framework.environment.kafka.commands.TopicCreateCommand.createTopics;
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
 import static org.apache.commons.lang3.RandomUtils.nextInt;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
-public class DynamicTopicTest extends TestBase {
+public class DynamicTopicTest extends IntegrationTestBase {
 
     private TestActorFactory actorFactory;
     private String topic;
@@ -82,7 +82,7 @@ public class DynamicTopicTest extends TestBase {
         TestConsumer<String, Integer> consumer = actorFactory.consumer(topic, StringDeserializer.class, IntegerDeserializer.class);
 
         Executors.newSingleThreadExecutor().submit(() -> {
-            (IntStream.range(1, 1000)).forEach(producer::send);
+            (IntStream.range(1, 1000)).parallel().forEach(producer::send);
             producer.close();
         });
 
@@ -97,7 +97,7 @@ public class DynamicTopicTest extends TestBase {
         TestConsumer<String, Integer> consumer = actorFactory.consumer(topic, StringDeserializer.class, IntegerDeserializer.class);
 
         Executors.newSingleThreadExecutor().submit(() -> {
-            (IntStream.range(1, 1000)).forEach(producer::send);
+            (IntStream.range(1, 1000)).parallel().forEach(producer::send);
             producer.close();
         });
 
@@ -122,7 +122,7 @@ public class DynamicTopicTest extends TestBase {
         });
 
         Executors.newSingleThreadExecutor().submit(() -> {
-            (IntStream.range(1, 1000)).forEach(producer::send);
+            (IntStream.range(1, 1000)).parallel().forEach(producer::send);
             producer.close();
         });
 
@@ -150,7 +150,9 @@ public class DynamicTopicTest extends TestBase {
         GenericRecord message = consumer.consumeUntilMatch(recordNameEquals(name));
 
         assertThat(message.toString())
-                .isEqualTo("{\"name\": \"" + name + "\", \"favorite_number\": 7, \"favorite_color\": \"blue\"}");
+                .isEqualTo("{\"name\": \"" + name + "\", " +
+                        "\"favorite_number\": 7, " +
+                        "\"favorite_color\": \"blue\"}");
     }
 
     private Predicate<List<Integer>> anyRecordFound() {

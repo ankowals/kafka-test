@@ -12,23 +12,23 @@ import java.util.concurrent.TimeUnit;
 @KafkaListener(groupId = "testConsumers", clientId = "testTopic-consumer")
 public class StaticTopicTestConsumer {
 
-    private final BlockingQueue<String> records = new LinkedBlockingDeque<>();
+    private final BlockingQueue<String> buffer = new LinkedBlockingDeque<>();
 
     @Topic("testTopic")
-    public void consume(String body) {
-        records.add(body);
+    public void consume(String record) {
+        buffer.add(record);
     }
 
     public String getRecord() throws InterruptedException {
-        String record = records.poll(2, TimeUnit.SECONDS);
-        records.clear();
+        String record = buffer.poll(2, TimeUnit.SECONDS);
+        buffer.clear();
 
         return record;
     }
 
-    public BlockingQueue<String> getRecords() {
-        BlockingQueue<String> copy = new LinkedBlockingDeque<>(records);
-        records.clear();
+    public BlockingQueue<String> getBuffer() {
+        BlockingQueue<String> copy = new LinkedBlockingDeque<>(buffer);
+        buffer.clear();
 
         return copy;
     }

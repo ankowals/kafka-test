@@ -1,4 +1,4 @@
-package com.github.ankowals.example.kafka.framework.environment.kafka;
+package com.github.ankowals.example.kafka.framework.environment.kafka.commands;
 
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.ListTopicsOptions;
@@ -12,16 +12,16 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-public class TestTopicCreateCommand implements AdminClientCommand {
+public class TopicCreateCommand implements AdminClientCommand {
 
     private final Set<String> names;
 
-    private TestTopicCreateCommand(Set<String> names) {
+    private TopicCreateCommand(Set<String> names) {
         this.names = names;
     }
 
-    public static TestTopicCreateCommand createTopics(String... names) {
-        return new TestTopicCreateCommand(new HashSet<>(Arrays.asList(names)));
+    public static TopicCreateCommand createTopics(String... names) {
+        return new TopicCreateCommand(new HashSet<>(Arrays.asList(names)));
     }
 
     @Override

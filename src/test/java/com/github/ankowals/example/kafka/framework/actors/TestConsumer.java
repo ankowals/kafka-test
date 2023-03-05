@@ -14,7 +14,7 @@ import static org.awaitility.Awaitility.await;
 
 public class TestConsumer<K, V> {
 
-    private static final Duration DEFAULT_TIMEOUT = Duration.ofSeconds(5);
+    private static final Duration DEFAULT_TIMEOUT = Duration.ofSeconds(10);
 
     private final KafkaConsumer<K, V> kafkaConsumer;
     private final List<V> buffer;
@@ -34,12 +34,10 @@ public class TestConsumer<K, V> {
 
     public List<V> consume(Duration timeout) {
         try {
+            buffer.clear();
             poll(timeout);
 
-            List<V> copy = getBufferCopy();
-            buffer.clear();
-
-            return copy;
+            return getBufferCopy();
         } finally {
             kafkaConsumer.close();
         }
@@ -51,12 +49,13 @@ public class TestConsumer<K, V> {
 
     public List<V> consumeUntil(Predicate<List<V>> predicate, Duration timeout) throws InterruptedException {
         try {
+            buffer.clear();
+
             Callable<List<V>> supplier = this::getBufferCopy;
             startConsuming();
 
             return await().atMost(timeout).until(supplier, predicate);
         } finally {
-            buffer.clear();
             service.awaitTermination(300, MILLISECONDS);
             consumingTask.cancel(true);
         }
@@ -70,7 +69,7 @@ public class TestConsumer<K, V> {
         return getMatching(consumeUntil(list -> list.stream().anyMatch(predicate), timeout), predicate);
     }
 
-    private static <T> T getMatching(List<T> list, Predicate<T> predicate) {
+    private V getMatching(List<V> list, Predicate<V> predicate) {
         return list != null && !list.isEmpty()
                 ? list.stream().filter(predicate).findAny().orElse(null)
                 : null;

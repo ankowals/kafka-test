@@ -8,35 +8,35 @@ import org.slf4j.LoggerFactory;
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 
-public class WireMockServerStub {
+public class WireMockStub {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(WireMockServerStub.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(WireMockStub.class);
 
     private final WireMockServer server;
 
-    private WireMockServerStub() {
+    private WireMockStub() {
         this.server = new WireMockServer(wireMockConfig().dynamicPort());
-        this.server.addMockServiceRequestListener(WireMockServerStub::requestReceived);
+        this.server.addMockServiceRequestListener(WireMockStub::requestReceived);
     }
 
-    public static WireMockServerStub start() {
-        WireMockServerStub wireMockServerStub = new WireMockServerStub();
+    public static WireMockStub start() {
+        WireMockStub wireMockServerStub = new WireMockStub();
         wireMockServerStub.getServer().start();
         Runtime.getRuntime().addShutdownHook(new Thread(() -> wireMockServerStub.getServer().stop()));
 
         return wireMockServerStub;
     }
 
-    public static WireMockServerStub start(ConfigureWireMockStubCommand configureWireMockStubCommand) {
-        WireMockServerStub wireMockServerStub = start();
+    public static WireMockStub start(WireMockServerCommand wireMockServerCommand) {
+        WireMockStub wireMockStub = start();
 
         try {
-            configureWireMockStubCommand.configure(wireMockServerStub.getServer());
+            wireMockServerCommand.run(wireMockStub.getServer());
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
 
-        return wireMockServerStub;
+        return wireMockStub;
     }
 
     public void stop() {

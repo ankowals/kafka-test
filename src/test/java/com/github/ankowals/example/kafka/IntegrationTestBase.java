@@ -12,7 +12,7 @@ import java.util.Map;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ExtendWith(WatcherExtension.class)
-public class TestBase implements UsesKafka, TestPropertyProvider {
+public class IntegrationTestBase implements UsesKafka, TestPropertyProvider {
 
     @NonNull
     @Override

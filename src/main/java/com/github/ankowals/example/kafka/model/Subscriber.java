@@ -1,4 +1,4 @@
-package com.github.ankowals.example.kafka;
+package com.github.ankowals.example.kafka.model;
 
 import lombok.*;
 

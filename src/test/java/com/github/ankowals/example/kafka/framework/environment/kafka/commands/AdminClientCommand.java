@@ -1,4 +1,4 @@
-package com.github.ankowals.example.kafka.framework.environment.kafka;
+package com.github.ankowals.example.kafka.framework.environment.kafka.commands;
 
 import org.apache.kafka.clients.admin.AdminClient;
 

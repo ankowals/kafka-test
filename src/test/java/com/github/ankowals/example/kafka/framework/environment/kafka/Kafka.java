@@ -1,5 +1,6 @@
 package com.github.ankowals.example.kafka.framework.environment.kafka;
 
+import com.github.ankowals.example.kafka.framework.environment.kafka.commands.AdminClientCommand;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.testcontainers.containers.KafkaContainer;
@@ -14,8 +15,7 @@ public class Kafka {
 
     private Kafka(DockerImageName dockerImageName) {
         this.container = createContainer(dockerImageName);
-        container.start();
-
+        this.container.start();
         this.adminClient = createAdminClient(container.getBootstrapServers());
     }
 
@@ -43,9 +43,7 @@ public class Kafka {
     }
 
     private KafkaContainer createContainer(DockerImageName dockerImageName) {
-        try(KafkaContainer container = new KafkaContainer(dockerImageName)
-                .withReuse(true)) {
-
+        try(KafkaContainer container = new KafkaContainer(dockerImageName).withReuse(true)) {
             return container;
         }
     }

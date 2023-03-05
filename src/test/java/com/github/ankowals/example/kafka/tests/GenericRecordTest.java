@@ -1,9 +1,9 @@
 package com.github.ankowals.example.kafka.tests;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.ankowals.example.kafka.EmailAddress;
-import com.github.ankowals.example.kafka.Subscriber;
-import com.github.ankowals.example.kafka.User;
+import com.github.ankowals.example.kafka.model.EmailAddress;
+import com.github.ankowals.example.kafka.model.Subscriber;
+import com.github.ankowals.example.kafka.model.User;
 import com.github.ankowals.example.kafka.framework.environment.kafka.SchemaReader;
 import com.github.ankowals.example.kafka.data.GenericRecordJacksonMapper;
 import com.github.ankowals.example.kafka.data.builders.SubscriberRecordBuilder;
