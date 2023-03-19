@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 
-import static com.github.ankowals.example.kafka.data.GenericRecordFactory.emailAddress;
+import static com.github.ankowals.example.kafka.data.GenericRecordFactory.email;
 import static com.github.ankowals.example.kafka.data.GenericRecordMapper.toGenericRecord;
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.json;
@@ -66,16 +66,15 @@ public class GenericRecordTest {
                 .fName("John")
                 .lName("Doe")
                 .phoneNumber("123456")
-                .emailAddress(emailAddress("first@terefere.com"))
-                .emailAddress(emailAddress("second@terefere.com"))
-                .emailAddress(emailAddress("third@terefere.com"))
-                .emailAddress(emailAddress("fourth@terefere.com"))
+                .emailAddress(email("first@terefere.com"))
+                .emailAddress(email("second@terefere.com"))
+                .emailAddress(email("third@terefere.com"))
+                .emailAddress(email("fourth@terefere.com"))
                 .build();
 
         System.out.println(record.toString());
 
-        assertThat(GenericData.get().validate(builder.getSchema(), record));
-
+        assertThat(GenericData.get().validate(builder.getSchema(), record)).isTrue();
         assertThatJson(record.toString()).when(Option.IGNORING_ARRAY_ORDER).and(
                 a -> a.node("id").isEqualTo(1),
                 a -> a.node("fname").isEqualTo("John"),

@@ -1,5 +1,6 @@
 package com.github.ankowals.example.kafka;
 
+import com.github.ankowals.example.kafka.environment.UsesFilteringServiceStub;
 import com.github.ankowals.example.kafka.environment.UsesKafka;
 import io.github.glytching.junit.extension.watcher.WatcherExtension;
 import io.micronaut.core.annotation.NonNull;
@@ -12,11 +13,15 @@ import java.util.Map;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ExtendWith(WatcherExtension.class)
-public class IntegrationTestBase implements UsesKafka, TestPropertyProvider {
+public class IntegrationTestBase implements UsesKafka, UsesFilteringServiceStub, TestPropertyProvider {
 
     @NonNull
     @Override
     public Map<String, String> getProperties() {
-        return new HashMap<>(getKafkaProperties());
+        Map<String, String> properties = new HashMap<>();
+        properties.putAll(getKafkaProperties());
+        properties.putAll(getFilteringServiceProperties());
+
+        return properties;
     }
 }

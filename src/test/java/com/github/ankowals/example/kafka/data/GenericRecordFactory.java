@@ -7,7 +7,7 @@ import java.io.IOException;
 
 public class GenericRecordFactory {
 
-    public static GenericRecord emailAddress(String email) throws IOException {
+    public static GenericRecord email(String email) throws IOException {
         return EmailAddressRecordBuilder.builder()
                 .email(email)
                 .address(true)

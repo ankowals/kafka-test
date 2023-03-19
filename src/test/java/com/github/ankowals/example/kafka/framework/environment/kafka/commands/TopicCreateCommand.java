@@ -32,13 +32,7 @@ public class TopicCreateCommand implements AdminClientCommand {
                 .map(name -> new NewTopic(name, 1, (short) 1))
                 .toList();
 
-        createTopics(topics, adminClient);
-    }
-
-    private void createTopics(List<NewTopic> topics, AdminClient adminClient) throws ExecutionException, InterruptedException, TimeoutException {
-        adminClient.createTopics(topics)
-                .all()
-                .get(5, TimeUnit.SECONDS);
+        adminClient.createTopics(topics).all().isDone();
     }
 
     private Set<String> getTopics(AdminClient adminClient) throws ExecutionException, InterruptedException, TimeoutException {

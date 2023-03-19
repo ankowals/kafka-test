@@ -43,79 +43,79 @@ public class DynamicTopicTest extends IntegrationTestBase {
                 getProperties().get("kafka.bootstrap.servers"),
                 getProperties().get("kafka.schema.registry.url"));
 
-        createTopics(topic).run(getAdminClient());
+        createTopics(this.topic).run(getAdminClient());
     }
 
     @Test
     public void shouldConsumeRecords() {
-        Integer randomNumber = nextInt();
+        Integer record = nextInt();
 
-        TestProducer<String, Integer> producer = actorFactory.producer(topic, StringSerializer.class, IntegerSerializer.class);
-        TestConsumer<String, Integer> consumer = actorFactory.consumer(topic, StringDeserializer.class, IntegerDeserializer.class);
+        TestProducer<String, Integer> producer = this.actorFactory.producer(this.topic, StringSerializer.class, IntegerSerializer.class);
+        TestConsumer<String, Integer> consumer = this.actorFactory.consumer(this.topic, StringDeserializer.class, IntegerDeserializer.class);
 
-        producer.produce(randomNumber);
-        List<Integer> messages = consumer.consume();
+        producer.produce(record);
+        List<Integer> records = consumer.consume();
 
-        assertThat(messages.size()).isEqualTo(1);
-        assertThat(messages.get(messages.size() - 1)).isEqualTo(randomNumber);
+        assertThat(records.size()).isEqualTo(1);
+        assertThat(records.get(records.size() - 1)).isEqualTo(record);
     }
 
     @Test
     public void shouldConsumeRecordsUntilConditionIsFulfilled() throws InterruptedException {
-        TestProducer<String, String> producer = actorFactory.producer(topic, StringSerializer.class, StringSerializer.class);
-        TestConsumer<String, String> consumer = actorFactory.consumer(topic, StringDeserializer.class, StringDeserializer.class);
+        TestProducer<String, String> producer = this.actorFactory.producer(this.topic, StringSerializer.class, StringSerializer.class);
+        TestConsumer<String, String> consumer = this.actorFactory.consumer(this.topic, StringDeserializer.class, StringDeserializer.class);
 
         Executors.newSingleThreadExecutor().submit(() -> {
             (IntStream.range(1, 1000)).forEach(i -> producer.send("terefere-" + i));
             producer.close();
         });
 
-        List<String> messages = consumer.consumeUntil(numberOfRecordsIs(999));
+        List<String> records = consumer.consumeUntil(numberOfRecordsIs(999));
 
-        assertThat(messages.size()).isEqualTo(999);
-        assertThat(messages).contains("terefere-999");
+        assertThat(records.size()).isEqualTo(999);
+        assertThat(records).contains("terefere-999");
     }
 
     @Test
     public void shouldConsumeLatestRecord() throws InterruptedException {
-        TestProducer<String, Integer> producer = actorFactory.producer(topic, StringSerializer.class, IntegerSerializer.class);
-        TestConsumer<String, Integer> consumer = actorFactory.consumer(topic, StringDeserializer.class, IntegerDeserializer.class);
+        TestProducer<String, Integer> producer = this.actorFactory.producer(this.topic, StringSerializer.class, IntegerSerializer.class);
+        TestConsumer<String, Integer> consumer = this.actorFactory.consumer(this.topic, StringDeserializer.class, IntegerDeserializer.class);
 
         Executors.newSingleThreadExecutor().submit(() -> {
             (IntStream.range(1, 1000)).parallel().forEach(producer::send);
             producer.close();
         });
 
-        Integer message = consumer.consumeUntilMatch(number -> number == 999);
+        Integer record = consumer.consumeUntilMatch(number -> number == 999);
 
-        assertThat(message).isEqualTo(999);
+        assertThat(record).isEqualTo(999);
     }
 
     @Test
     public void shouldPollUntilRecordsFound() throws InterruptedException {
-        TestProducer<String, Integer> producer = actorFactory.producer(topic, StringSerializer.class, IntegerSerializer.class);
-        TestConsumer<String, Integer> consumer = actorFactory.consumer(topic, StringDeserializer.class, IntegerDeserializer.class);
+        TestProducer<String, Integer> producer = this.actorFactory.producer(this.topic, StringSerializer.class, IntegerSerializer.class);
+        TestConsumer<String, Integer> consumer = this.actorFactory.consumer(this.topic, StringDeserializer.class, IntegerDeserializer.class);
 
         Executors.newSingleThreadExecutor().submit(() -> {
             (IntStream.range(1, 1000)).parallel().forEach(producer::send);
             producer.close();
         });
 
-        List<Integer> messages = consumer.consumeUntil(anyRecordFound());
+        List<Integer> records = consumer.consumeUntil(anyRecordFound());
 
-        assertThat(messages.size()).isGreaterThanOrEqualTo(1);
+        assertThat(records.size()).isGreaterThanOrEqualTo(1);
     }
 
     @Test
     public void shouldStartPollingFirst() {
-        TestProducer<String, Integer> producer = actorFactory.producer(topic, StringSerializer.class, IntegerSerializer.class);
-        TestConsumer<String, Integer> consumer = actorFactory.consumer(topic, StringDeserializer.class, IntegerDeserializer.class);
+        TestProducer<String, Integer> producer = this.actorFactory.producer(this.topic, StringSerializer.class, IntegerSerializer.class);
+        TestConsumer<String, Integer> consumer = this.actorFactory.consumer(this.topic, StringDeserializer.class, IntegerDeserializer.class);
 
-        AtomicReference<List<Integer>> messages = new AtomicReference<>();
+        AtomicReference<List<Integer>> records = new AtomicReference<>();
 
         Executors.newSingleThreadExecutor().submit(() -> {
             try {
-                messages.set(consumer.consumeUntil(list -> list.contains(459)));
+                records.set(consumer.consumeUntil(list -> list.contains(459)));
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
@@ -126,15 +126,31 @@ public class DynamicTopicTest extends IntegrationTestBase {
             producer.close();
         });
 
-        await().until(() -> messages.get() != null);
+        await().until(() -> records.get() != null);
 
-        assertThat(messages.get().size()).isGreaterThanOrEqualTo(459);
+        assertThat(records.get().size()).isGreaterThanOrEqualTo(459);
+    }
+
+    @Test
+    public void shouldPollUntilExpectedElementsFound() throws InterruptedException {
+        TestProducer<String, String> producer = this.actorFactory.producer(this.topic, StringSerializer.class, StringSerializer.class);
+        TestConsumer<String, String> consumer = this.actorFactory.consumer(this.topic, StringDeserializer.class, StringDeserializer.class);
+
+        Executors.newSingleThreadExecutor().submit(() -> {
+            (IntStream.range(1, 1000)).parallel().forEach(i -> producer.send("terefere-" + i));
+            producer.close();
+        });
+
+        List<String> expectedRecords = List.of("terefere-3", "terefere-459", "terefere-812");
+        List<String> records = consumer.consumeUntil(containsAll(expectedRecords));
+
+        assertThat(records).doesNotHaveDuplicates();
     }
 
     @Test
     public void shouldConsumeGenericRecord() throws IOException, InterruptedException {
-        TestProducer<Bytes, Object> producer = actorFactory.producer(topic);
-        TestConsumer<Bytes, GenericRecord> consumer = actorFactory.consumer(topic);
+        TestProducer<Bytes, Object> producer = this.actorFactory.producer(this.topic);
+        TestConsumer<Bytes, GenericRecord> consumer = this.actorFactory.consumer(this.topic);
 
         Schema schema = new SchemaReader().read("user.avro");
 
@@ -147,9 +163,9 @@ public class DynamicTopicTest extends IntegrationTestBase {
                 .build();
 
         producer.produce(record);
-        GenericRecord message = consumer.consumeUntilMatch(recordNameEquals(name));
+        GenericRecord actualRecord = consumer.consumeUntilMatch(recordNameEquals(name));
 
-        assertThat(message.toString())
+        assertThat(actualRecord.toString())
                 .isEqualTo("{\"name\": \"" + name + "\", " +
                         "\"favorite_number\": 7, " +
                         "\"favorite_color\": \"blue\"}");
@@ -165,5 +181,9 @@ public class DynamicTopicTest extends IntegrationTestBase {
 
     private Predicate<GenericRecord> recordNameEquals(String name) {
         return genericRecord -> new JSONObject(genericRecord.toString()).getString("name").equals(name);
+    }
+
+    private Predicate<List<String>> containsAll(List<String> sublist) {
+        return list-> list.containsAll(sublist);
     }
 }

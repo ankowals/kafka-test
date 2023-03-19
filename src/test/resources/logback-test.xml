@@ -10,13 +10,8 @@
     <root level="info">
         <appender-ref ref="STDOUT"/>
     </root>
-    <logger name="org.apache.kafka" level="warn">
+   <logger name="com.github.ankowals.example.kafka.framework.environment.wiremock.WireMockStub" level="trace">
         <appender-ref ref="STDOUT"/>
     </logger>
-    <logger name="kafka" level="warn">
-        <appender-ref ref="STDOUT"/>
-    </logger>
-    <logger name="org.apache.zookeeper" level="warn">
-        <appender-ref ref="STDOUT"/>
-    </logger>
+
 </configuration>

@@ -6,17 +6,17 @@ import org.apache.kafka.clients.admin.AdminClient;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.testcontainers.containers.KafkaContainer.KAFKA_PORT;
+import static com.github.ankowals.example.kafka.framework.environment.kafka.commands.TopicCreateCommand.createTopics;
 
 public interface UsesKafka {
 
-    Kafka KAFKA_INSTANCE = Kafka.start();
+    Kafka KAFKA_INSTANCE = Kafka.start(createTopics("word-input", "word-output"));
 
     default AdminClient getAdminClient() { return KAFKA_INSTANCE.getAdminClient(); }
 
     default Map<String, String> getKafkaProperties() {
         Map<String, String> properties = new HashMap<>();
-        properties.put("kafka.bootstrap.servers", KAFKA_INSTANCE.getContainer().getHost() + ":" + KAFKA_INSTANCE.getContainer().getMappedPort(KAFKA_PORT));
+        properties.put("kafka.bootstrap.servers", KAFKA_INSTANCE.getContainer().getBootstrapServers());
         properties.put("kafka.schema.registry.url", "mock://schema-registry");
 
         return properties;

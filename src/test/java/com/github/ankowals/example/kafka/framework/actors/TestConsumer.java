@@ -34,12 +34,12 @@ public class TestConsumer<K, V> {
 
     public List<V> consume(Duration timeout) {
         try {
-            buffer.clear();
+            this.buffer.clear();
             poll(timeout);
 
             return getBufferCopy();
         } finally {
-            kafkaConsumer.close();
+            this.kafkaConsumer.close();
         }
     }
 
@@ -49,15 +49,15 @@ public class TestConsumer<K, V> {
 
     public List<V> consumeUntil(Predicate<List<V>> predicate, Duration timeout) throws InterruptedException {
         try {
-            buffer.clear();
+            this.buffer.clear();
 
             Callable<List<V>> supplier = this::getBufferCopy;
             startConsuming();
 
             return await().atMost(timeout).until(supplier, predicate);
         } finally {
-            service.awaitTermination(300, MILLISECONDS);
-            consumingTask.cancel(true);
+            this.service.awaitTermination(300, MILLISECONDS);
+            this.consumingTask.cancel(true);
         }
     }
 
@@ -77,7 +77,7 @@ public class TestConsumer<K, V> {
 
     private void startConsuming() {
         this.service = Executors.newSingleThreadExecutor();
-        this.consumingTask = service.submit(() -> {
+        this.consumingTask = this.service.submit(() -> {
             while (!Thread.currentThread().isInterrupted()) {
                 poll(Duration.ofMillis(100));
             }
@@ -85,10 +85,10 @@ public class TestConsumer<K, V> {
     }
 
     private void poll(Duration duration) {
-        ConsumerRecords<K, V> records = kafkaConsumer.poll(duration);
+        ConsumerRecords<K, V> records = this.kafkaConsumer.poll(duration);
         for (ConsumerRecord<K, V> rec : records) {
-            buffer.add(rec.value());
-            kafkaConsumer.commitSync();
+            this.buffer.add(rec.value());
+            this.kafkaConsumer.commitSync();
         }
     }
 

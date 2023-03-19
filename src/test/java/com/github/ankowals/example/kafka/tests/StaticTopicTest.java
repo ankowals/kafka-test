@@ -8,8 +8,12 @@ import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import static com.github.ankowals.example.kafka.framework.environment.kafka.commands.TopicCreateCommand.createTopics;
+import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
 @MicronautTest
 public class StaticTopicTest extends IntegrationTestBase {
@@ -22,14 +26,18 @@ public class StaticTopicTest extends IntegrationTestBase {
 
     @BeforeAll
     void setup() throws Exception {
-        createTopics("testTopic").run(getAdminClient());
+        createTopics("test-topic").run(getAdminClient());
     }
 
     @Test
-    public void shouldConsumeProducedRecords() throws InterruptedException {
-        testProducer.produce("terefere");
-        String message = testConsumer.getRecord();
+    public void shouldConsumeProducedRecords() {
+        String record = randomAlphabetic(11);
 
-        assertThat(message).isEqualTo("terefere");
+        testProducer.produce(record);
+
+        await().untilAsserted(() -> {
+                    List<String> records = testConsumer.getRecords();
+                    assertThat(records).contains(record);
+                });
     }
 }

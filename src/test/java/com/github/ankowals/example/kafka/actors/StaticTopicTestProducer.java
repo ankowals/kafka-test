@@ -6,6 +6,6 @@ import io.micronaut.configuration.kafka.annotation.Topic;
 @KafkaClient
 public interface StaticTopicTestProducer {
 
-    @Topic("testTopic")
-    void produce(String body);
+    @Topic("test-topic")
+    void produce(String record);
 }
