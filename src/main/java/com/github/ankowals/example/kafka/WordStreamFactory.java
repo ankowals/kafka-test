@@ -11,13 +11,13 @@ import org.apache.kafka.streams.kstream.*;
 import java.util.Properties;
 
 @Factory
-public class WordCountStreamFactory {
+public class WordStreamFactory {
 
     @Property(name="kafka.bootstrap.servers")
     String bootstrapServers;
 
     @Singleton
-    KStream<String, String> wordCountStream(ConfiguredStreamBuilder builder, FilteringServiceApiClient client) {
+    KStream<String, String> wordFilteringStream(ConfiguredStreamBuilder builder, FilteringServiceApiClient client) {
         Properties props = builder.getConfiguration();
         props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, this.bootstrapServers);
 
