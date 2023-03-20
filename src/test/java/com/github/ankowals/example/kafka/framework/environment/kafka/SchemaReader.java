@@ -10,6 +10,6 @@ public class SchemaReader {
     private final Schema.Parser parser = new Schema.Parser();
 
     public Schema read(String path) throws IOException {
-        return parser.parse(ResourceUtils.getResourceFile(path));
+        return parser.parse(ResourceUtils.getResourceContent(path));
     }
 }

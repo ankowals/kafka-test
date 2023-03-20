@@ -57,7 +57,7 @@ public class StreamsTest extends IntegrationTestBase {
                 randomAlphabetic(8),
                 randomAlphabetic(8));
 
-        mergeAndShuffle(excludedRecords, expectedRecords).forEach(producer::send);
+        mergeAndShuffle(excludedRecords, expectedRecords).stream().parallel().forEach(producer::send);
         producer.close();
 
         List<String> actualRecords = consumer.consumeUntil(containsAll(expectedRecords));

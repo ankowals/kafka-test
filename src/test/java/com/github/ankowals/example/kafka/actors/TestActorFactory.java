@@ -92,5 +92,6 @@ public class TestActorFactory {
         this.properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, KafkaAvroSerializer.class.getName());
         this.properties.put(KafkaAvroSerializerConfig.AVRO_USE_LOGICAL_TYPE_CONVERTERS_CONFIG, true);
         this.properties.put(KafkaAvroSerializerConfig.AUTO_REGISTER_SCHEMAS, false);
+        this.properties.put(KafkaAvroSerializerConfig.USE_LATEST_VERSION, true);
     }
 }
