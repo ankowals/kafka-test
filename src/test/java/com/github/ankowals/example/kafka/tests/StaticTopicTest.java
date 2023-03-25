@@ -3,14 +3,15 @@ package com.github.ankowals.example.kafka.tests;
 import com.github.ankowals.example.kafka.actors.StaticTopicTestConsumer;
 import com.github.ankowals.example.kafka.actors.StaticTopicTestProducer;
 import com.github.ankowals.example.kafka.IntegrationTestBase;
+import com.github.ankowals.example.kafka.framework.environment.kafka.commands.TopicCreateCommand;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import static com.github.ankowals.example.kafka.framework.environment.kafka.commands.TopicCreateCommand.createTopics;
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
@@ -25,8 +26,13 @@ public class StaticTopicTest extends IntegrationTestBase {
     public StaticTopicTestConsumer testConsumer;
 
     @BeforeAll
-    void setup() throws Exception {
-        createTopics("test-topic").run(getAdminClient());
+    void createTopics() throws Exception {
+        TopicCreateCommand.createTopics("test-topic").run(getAdminClient());
+    }
+
+    @BeforeEach
+    void clearBuffer() {
+        testConsumer.clearBuffer();
     }
 
     @Test

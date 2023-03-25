@@ -40,8 +40,7 @@ public class StreamsTest extends IntegrationTestBase {
 
     @BeforeEach
     void setupStreams() {
-        await().until(() ->
-                kafkaStreams.state().equals(KafkaStreams.State.RUNNING));
+        await().until(() -> kafkaStreams.state().equals(KafkaStreams.State.RUNNING));
     }
 
     @Test
