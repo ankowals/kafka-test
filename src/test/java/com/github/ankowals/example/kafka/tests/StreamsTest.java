@@ -26,17 +26,11 @@ import static org.awaitility.Awaitility.await;
 @MicronautTest
 public class StreamsTest extends IntegrationTestBase {
 
+    @Inject
     private TestActorFactory actorFactory;
 
     @Inject
     private KafkaStreams kafkaStreams;
-
-    @BeforeAll
-    void setup() {
-        this.actorFactory = new TestActorFactory(
-                getProperties().get("kafka.bootstrap.servers"),
-                getProperties().get("kafka.schema.registry.url"));
-    }
 
     @BeforeEach
     void setupStreams() {

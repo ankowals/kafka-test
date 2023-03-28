@@ -43,9 +43,7 @@ public class Kafka {
     }
 
     private KafkaContainer createContainer(DockerImageName dockerImageName) {
-        try(KafkaContainer container = new KafkaContainer(dockerImageName).withReuse(true)) {
-            return container;
-        }
+        return new KafkaContainer(dockerImageName).withReuse(true);
     }
 
     private AdminClient createAdminClient(String bootstrapServer) {

@@ -6,6 +6,10 @@ import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
 import io.confluent.kafka.serializers.KafkaAvroSerializerConfig;
 import io.confluent.kafka.streams.serdes.avro.GenericAvroDeserializer;
+import io.micronaut.context.annotation.Factory;
+import io.micronaut.context.annotation.Primary;
+import io.micronaut.context.annotation.Property;
+import jakarta.inject.Singleton;
 import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
@@ -20,15 +24,19 @@ import java.util.Properties;
 
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
 
+@Factory
 public class TestActorFactory {
 
     private final Properties properties;
 
-    public TestActorFactory(String bootstrapServer) {
+    public TestActorFactory(@Property(name = "kafka.bootstrap.servers") String bootstrapServer) {
         this(bootstrapServer, "");
     }
 
-    public TestActorFactory(String bootstrapServer, String schemaRegistryUrl) {
+    @Primary
+    @Singleton
+    public TestActorFactory(@Property(name = "kafka.bootstrap.servers") String bootstrapServer,
+                            @Property(name = "kafka.schema.registry.url") String schemaRegistryUrl) {
         this.properties = new Properties();
         this.properties.put(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG, bootstrapServer);
         this.properties.put(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, schemaRegistryUrl);
