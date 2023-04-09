@@ -17,7 +17,7 @@ public class SubscriberRecordBuilder {
 
     public SubscriberRecordBuilder() throws IOException {
         this.schema = new SchemaReader().read("subscriber.avro");
-        this.record = new GenericData.Record(schema);
+        this.record = new GenericData.Record(this.schema);
         this.emailAddressesList = new ArrayList();
     }
 
@@ -26,7 +26,7 @@ public class SubscriberRecordBuilder {
     }
 
     public Schema getSchema() {
-        return schema;
+        return this.schema;
     }
 
     public SubscriberRecordBuilder id(int value) {
@@ -60,7 +60,7 @@ public class SubscriberRecordBuilder {
     }
 
     public GenericRecord build() {
-        this.record.put("emailAddresses", emailAddressesList);
-        return record;
+        this.record.put("emailAddresses", this.emailAddressesList);
+        return this.record;
     }
 }

@@ -3,7 +3,7 @@ package com.github.ankowals.example.kafka.tests;
 import com.github.ankowals.example.kafka.actors.StaticTopicTestConsumer;
 import com.github.ankowals.example.kafka.actors.StaticTopicTestProducer;
 import com.github.ankowals.example.kafka.IntegrationTestBase;
-import com.github.ankowals.example.kafka.framework.environment.kafka.commands.TopicCreateCommand;
+import com.github.ankowals.example.kafka.framework.environment.kafka.commands.KafkaCreate;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeAll;
@@ -27,22 +27,22 @@ public class StaticTopicTest extends IntegrationTestBase {
 
     @BeforeAll
     void createTopics() throws Exception {
-        TopicCreateCommand.createTopics("test-topic").run(getAdminClient());
+        KafkaCreate.topics("test-topic").run(this.getAdminClient());
     }
 
     @BeforeEach
     void clearBuffer() {
-        testConsumer.clearBuffer();
+        this.testConsumer.clearBuffer();
     }
 
     @Test
     public void shouldConsumeProducedRecords() {
         String record = randomAlphabetic(11);
 
-        testProducer.produce(record);
+        this.testProducer.produce(record);
 
         await().untilAsserted(() -> {
-                    List<String> records = testConsumer.getRecords();
+                    List<String> records = this.testConsumer.getRecords();
                     assertThat(records).contains(record);
                 });
     }

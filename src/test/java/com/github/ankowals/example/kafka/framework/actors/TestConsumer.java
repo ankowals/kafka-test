@@ -35,16 +35,16 @@ public class TestConsumer<K, V> {
     public List<V> consume(Duration timeout) {
         try {
             this.buffer.clear();
-            poll(timeout);
+            this.poll(timeout);
 
-            return getBufferCopy();
+            return this.getBufferCopy();
         } finally {
             this.kafkaConsumer.close();
         }
     }
 
     public List<V> consumeUntil(Predicate<List<V>> predicate) throws InterruptedException {
-        return consumeUntil(predicate, DEFAULT_TIMEOUT);
+        return this.consumeUntil(predicate, DEFAULT_TIMEOUT);
     }
 
     public List<V> consumeUntil(Predicate<List<V>> predicate, Duration timeout) throws InterruptedException {
@@ -52,7 +52,7 @@ public class TestConsumer<K, V> {
             this.buffer.clear();
 
             Callable<List<V>> supplier = this::getBufferCopy;
-            startConsuming();
+            this.startConsuming();
 
             return await().atMost(timeout).until(supplier, predicate);
         } finally {
@@ -62,11 +62,11 @@ public class TestConsumer<K, V> {
     }
 
     public V consumeUntilMatch(Predicate<V> predicate) throws InterruptedException {
-        return consumeUntilMatch(predicate, DEFAULT_TIMEOUT);
+        return this.consumeUntilMatch(predicate, DEFAULT_TIMEOUT);
     }
 
     public V consumeUntilMatch(Predicate<V> predicate, Duration timeout) throws InterruptedException {
-        return getMatching(consumeUntil(list -> list.stream().anyMatch(predicate), timeout), predicate);
+        return this.getMatching(consumeUntil(list -> list.stream().anyMatch(predicate), timeout), predicate);
     }
 
     private V getMatching(List<V> list, Predicate<V> predicate) {
@@ -79,7 +79,7 @@ public class TestConsumer<K, V> {
         this.service = Executors.newSingleThreadExecutor();
         this.consumingTask = this.service.submit(() -> {
             while (!Thread.currentThread().isInterrupted()) {
-                poll(Duration.ofMillis(100));
+                this.poll(Duration.ofMillis(100));
             }
         });
     }
@@ -93,11 +93,11 @@ public class TestConsumer<K, V> {
     }
 
     private List<V> getBufferCopy() {
-        return List.copyOf(buffer);
+        return List.copyOf(this.buffer);
     }
 
     private String validateTopic(String name) {
-        if (isNullOrEmpty(name))
+        if (this.isNullOrEmpty(name))
             throw new IllegalArgumentException("Topic name can't be null or empty!");
 
         return name;

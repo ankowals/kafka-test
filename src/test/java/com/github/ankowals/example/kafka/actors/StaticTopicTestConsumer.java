@@ -15,7 +15,7 @@ public class StaticTopicTestConsumer {
 
     @Topic("test-topic")
     public void consume(String record) {
-        buffer.add(record);
+        this.buffer.add(record);
     }
 
     public List<String> getRecords() {

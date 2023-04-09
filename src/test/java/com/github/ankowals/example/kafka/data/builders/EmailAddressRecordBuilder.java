@@ -18,7 +18,7 @@ public class EmailAddressRecordBuilder {
                 .schema()
                 .getElementType();
 
-        this.record = new GenericData.Record(schema);
+        this.record = new GenericData.Record(this.schema);
     }
 
     public static EmailAddressRecordBuilder builder() throws IOException {
@@ -36,6 +36,6 @@ public class EmailAddressRecordBuilder {
     }
 
     public GenericRecord build() {
-        return record;
+        return this.record;
     }
 }

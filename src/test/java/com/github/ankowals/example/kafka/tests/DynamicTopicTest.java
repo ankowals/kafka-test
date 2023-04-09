@@ -5,6 +5,7 @@ import com.github.ankowals.example.kafka.framework.actors.TestConsumer;
 import com.github.ankowals.example.kafka.actors.TestActorFactory;
 import com.github.ankowals.example.kafka.framework.actors.TestProducer;
 import com.github.ankowals.example.kafka.IntegrationTestBase;
+import com.github.ankowals.example.kafka.framework.environment.kafka.commands.KafkaCreate;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
@@ -25,7 +26,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
 import java.util.stream.IntStream;
 
-import static com.github.ankowals.example.kafka.framework.environment.kafka.commands.TopicCreateCommand.createTopics;
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
 import static org.apache.commons.lang3.RandomUtils.nextInt;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -40,10 +40,10 @@ public class DynamicTopicTest extends IntegrationTestBase {
     void setup() throws Exception {
         this.topic = randomAlphabetic(11);
         this.actorFactory = new TestActorFactory(
-                getProperties().get("kafka.bootstrap.servers"),
-                getProperties().get("kafka.schema.registry.url"));
+                this.getProperties().get("kafka.bootstrap.servers"),
+                this.getProperties().get("kafka.schema.registry.url"));
 
-        createTopics(this.topic).run(getAdminClient());
+        KafkaCreate.topics(this.topic).run(this.getAdminClient());
     }
 
     @Test
@@ -70,7 +70,7 @@ public class DynamicTopicTest extends IntegrationTestBase {
             producer.close();
         });
 
-        List<String> records = consumer.consumeUntil(numberOfRecordsIs(999));
+        List<String> records = consumer.consumeUntil(this.numberOfRecordsIs(999));
 
         assertThat(records.size()).isEqualTo(999);
         assertThat(records).contains("terefere-999");
@@ -101,7 +101,7 @@ public class DynamicTopicTest extends IntegrationTestBase {
             producer.close();
         });
 
-        List<Integer> records = consumer.consumeUntil(anyRecordFound());
+        List<Integer> records = consumer.consumeUntil(this.anyRecordFound());
 
         assertThat(records.size()).isGreaterThanOrEqualTo(1);
     }
@@ -142,7 +142,7 @@ public class DynamicTopicTest extends IntegrationTestBase {
         });
 
         List<String> expectedRecords = List.of("terefere-3", "terefere-459", "terefere-812");
-        List<String> records = consumer.consumeUntil(containsAll(expectedRecords));
+        List<String> records = consumer.consumeUntil(this.containsAll(expectedRecords));
 
         assertThat(records).doesNotHaveDuplicates();
     }
@@ -163,7 +163,7 @@ public class DynamicTopicTest extends IntegrationTestBase {
                 .build();
 
         producer.produce(record);
-        GenericRecord actualRecord = consumer.consumeUntilMatch(recordNameEquals(name));
+        GenericRecord actualRecord = consumer.consumeUntilMatch(this.recordNameEquals(name));
 
         assertThat(actualRecord.toString())
                 .isEqualTo("{\"name\": \"" + name + "\", " +

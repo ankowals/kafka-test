@@ -2,7 +2,7 @@ package com.github.ankowals.example.kafka.mocks;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
-import com.github.ankowals.example.kafka.framework.environment.wiremock.WireMockServerCommand;
+import com.github.ankowals.example.kafka.framework.environment.wiremock.commands.WireMockServerCommand;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
@@ -16,21 +16,21 @@ import java.util.List;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 
-public class FilteringServiceConfigureCommand implements WireMockServerCommand {
+public class FilteringServiceStub implements WireMockServerCommand {
 
     private final ObjectWriter objectWriter;
     private List<String> excludedValues;
 
-    private FilteringServiceConfigureCommand() {
+    private FilteringServiceStub() {
         this.objectWriter = new ObjectMapper().writer().withDefaultPrettyPrinter();
         this.excludedValues = new ArrayList<>();
     }
 
-    public static FilteringServiceConfigureCommand setupFilteringServiceStub() {
-        return new FilteringServiceConfigureCommand();
+    public static FilteringServiceStub configure() {
+        return new FilteringServiceStub();
     }
 
-    public FilteringServiceConfigureCommand excludedValues(List<String> values) {
+    public FilteringServiceStub excludedValues(List<String> values) {
         this.excludedValues = values;
         return this;
     }
@@ -38,7 +38,7 @@ public class FilteringServiceConfigureCommand implements WireMockServerCommand {
     @Override
     public void run(WireMockServer wireMockServer) throws Exception {
         wireMockServer.resetAll();
-        wireMockServer.stubFor(get("/excluded-values")
+        wireMockServer.stubFor(this.get("/excluded-values")
                 .willReturn(response(this.objectWriter.writeValueAsString(this.excludedValues))));
     }
 

@@ -1,17 +1,18 @@
 package com.github.ankowals.example.kafka.environment;
 
 import com.github.ankowals.example.kafka.framework.environment.wiremock.WireMockStub;
+import com.github.ankowals.example.kafka.mocks.FilteringServiceStub;
 import com.github.tomakehurst.wiremock.WireMockServer;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.github.ankowals.example.kafka.mocks.FilteringServiceConfigureCommand.setupFilteringServiceStub;
-
 public interface UsesFilteringServiceStub {
 
-    WireMockStub FILTERING_SERVICE_STUB_INSTANCE = WireMockStub.start(setupFilteringServiceStub().excludedValues(List.of("Zonk", "Kwak", "Hop")));
+    WireMockStub FILTERING_SERVICE_STUB_INSTANCE = WireMockStub.start(
+            FilteringServiceStub.configure().excludedValues(List.of("Zonk", "Kwak", "Hop"))
+    );
 
     default WireMockServer getFilteringServiceStub() { return FILTERING_SERVICE_STUB_INSTANCE.getServer(); }
 

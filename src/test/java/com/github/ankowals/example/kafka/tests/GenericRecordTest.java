@@ -23,11 +23,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class GenericRecordTest {
 
-    private static final SchemaReader schemaReader = new SchemaReader();
+    private static final SchemaReader SCHEMA_READER = new SchemaReader();
 
     @Test
     public void shouldConvertToGenericRecord() throws IOException {
-        Schema schema = schemaReader.read("user.avro");
+        Schema schema = SCHEMA_READER.read("user.avro");
 
         User user = new User("Joe", 1, "red");
 
@@ -47,7 +47,7 @@ public class GenericRecordTest {
 
     @Test
     public void shouldConvertToGenericRecordUsingJacksonMapper() throws IOException {
-        Schema schema = schemaReader.read("user.avro");
+        Schema schema = SCHEMA_READER.read("user.avro");
 
         User user = new User("Joe", 1, "red");
 
@@ -102,7 +102,7 @@ public class GenericRecordTest {
                 .emailAddress(EmailAddress.builder().email("fourth@terefere.com").build())
                 .build();
 
-        Schema schema = schemaReader.read("subscriber.avro");
+        Schema schema = SCHEMA_READER.read("subscriber.avro");
         GenericRecord record = toGenericRecord(subscriber, schema);
 
         System.out.println(record.toString());

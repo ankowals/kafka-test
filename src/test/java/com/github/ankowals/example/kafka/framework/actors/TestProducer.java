@@ -13,34 +13,34 @@ public class TestProducer<K, V> {
         this.kafkaProducer = kafkaProducer;
     }
 
-    public void send(V value) { send(createRecord(value)); }
+    public void send(V value) { this.send(this.createRecord(value)); }
 
     public void send(K key, V value) {
-        send(createRecord(key, value));
+        this.send(this.createRecord(key, value));
     }
 
     private void send(ProducerRecord<K, V> producerRecord) {
-        kafkaProducer.send(producerRecord);
-        kafkaProducer.flush();
+        this.kafkaProducer.send(producerRecord);
+        this.kafkaProducer.flush();
     }
 
     public void produce(V value) {
-        send(value);
-        close();
+        this.send(value);
+        this.close();
     }
 
     public void produce(K key, V value) {
-        send(key, value);
-        close();
+        this.send(key, value);
+        this.close();
     }
 
     public void produce(ProducerRecord<K, V> producerRecord) {
-        send(producerRecord);
-        close();
+        this.send(producerRecord);
+        this.close();
     }
 
     public void close() {
-        kafkaProducer.close();
+        this.kafkaProducer.close();
     }
 
     private ProducerRecord<K, V> createRecord(V value) {

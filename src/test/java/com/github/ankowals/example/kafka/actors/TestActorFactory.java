@@ -6,9 +6,8 @@ import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
 import io.confluent.kafka.serializers.KafkaAvroSerializerConfig;
 import io.confluent.kafka.streams.serdes.avro.GenericAvroDeserializer;
-import io.micronaut.context.annotation.Factory;
-import io.micronaut.context.annotation.Primary;
 import io.micronaut.context.annotation.Property;
+import io.micronaut.core.annotation.Creator;
 import jakarta.inject.Singleton;
 import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -24,7 +23,7 @@ import java.util.Properties;
 
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
 
-@Factory
+@Singleton
 public class TestActorFactory {
 
     private final Properties properties;
@@ -33,16 +32,15 @@ public class TestActorFactory {
         this(bootstrapServer, "");
     }
 
-    @Primary
-    @Singleton
+    @Creator
     public TestActorFactory(@Property(name = "kafka.bootstrap.servers") String bootstrapServer,
                             @Property(name = "kafka.schema.registry.url") String schemaRegistryUrl) {
         this.properties = new Properties();
         this.properties.put(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG, bootstrapServer);
         this.properties.put(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, schemaRegistryUrl);
 
-        setConsumerProperties();
-        setProducerProperties();
+        this.setConsumerProperties();
+        this.setProducerProperties();
     }
 
     public TestActorFactory(Properties properties) {
@@ -51,15 +49,19 @@ public class TestActorFactory {
 
     public <K, V> TestConsumer<K, V> consumer(String topic) {
         return consumer(topic,
-                properties.get(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG).toString(),
-                properties.get(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG).toString());
+                this.properties.get(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG).toString(),
+                this.properties.get(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG).toString());
     }
 
-    public <K, V> TestConsumer<K, V> consumer(String topic, Class<? extends Deserializer<K>> keyDeserializerClass, Class<? extends Deserializer<V>> valueDeserializerClass) {
-        return consumer(topic, keyDeserializerClass.getName(), valueDeserializerClass.getName());
+    public <K, V> TestConsumer<K, V> consumer(String topic,
+                                              Class<? extends Deserializer<K>> keyDeserializerClass,
+                                              Class<? extends Deserializer<V>> valueDeserializerClass) {
+        return this.consumer(topic, keyDeserializerClass.getName(), valueDeserializerClass.getName());
     }
 
-    private <K, V> TestConsumer<K, V> consumer(String topic, String keyDeserializerClassName, String valueDeserializerClassName) {
+    private <K, V> TestConsumer<K, V> consumer(String topic,
+                                               String keyDeserializerClassName,
+                                               String valueDeserializerClassName) {
         this.properties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, keyDeserializerClassName);
         this.properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, valueDeserializerClassName);
 
@@ -71,12 +73,14 @@ public class TestActorFactory {
 
     public <K, V> TestProducer<K, V> producer(String topic) {
         return producer(topic,
-                properties.get(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG).toString(),
-                properties.get(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG).toString());
+                this.properties.get(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG).toString(),
+                this.properties.get(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG).toString());
     }
 
-    public <K, V> TestProducer<K, V> producer(String topic, Class<? extends Serializer<K>> keySerializerClass, Class<? extends Serializer<V>> valueSerializerClass) {
-        return producer(topic, keySerializerClass.getName(), valueSerializerClass.getName());
+    public <K, V> TestProducer<K, V> producer(String topic,
+                                              Class<? extends Serializer<K>> keySerializerClass,
+                                              Class<? extends Serializer<V>> valueSerializerClass) {
+        return this.producer(topic, keySerializerClass.getName(), valueSerializerClass.getName());
     }
 
     private <K, V> TestProducer<K, V> producer(String topic, String keySerializerClassName, String valueSerializerClassName) {

@@ -16,7 +16,7 @@ public class Kafka {
     private Kafka(DockerImageName dockerImageName) {
         this.container = createContainer(dockerImageName);
         this.container.start();
-        this.adminClient = createAdminClient(container.getBootstrapServers());
+        this.adminClient = createAdminClient(this.container.getBootstrapServers());
     }
 
     public static Kafka start() {
@@ -35,11 +35,11 @@ public class Kafka {
     }
 
     public AdminClient getAdminClient() {
-        return adminClient;
+        return this.adminClient;
     }
 
     public KafkaContainer getContainer() {
-        return container;
+        return this.container;
     }
 
     private KafkaContainer createContainer(DockerImageName dockerImageName) {
