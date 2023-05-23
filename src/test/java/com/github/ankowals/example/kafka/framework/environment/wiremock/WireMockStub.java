@@ -1,6 +1,5 @@
 package com.github.ankowals.example.kafka.framework.environment.wiremock;
 
-import com.github.ankowals.example.kafka.framework.environment.wiremock.commands.WireMockServerCommand;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.http.Request;
 import com.github.tomakehurst.wiremock.http.Response;
@@ -27,10 +26,14 @@ public class WireMockStub {
             return wireMockStub;
     }
 
-    public static WireMockStub start(WireMockServerCommand wireMockServerCommand) {
+    public static WireMockStub start(WireMockServerCommand... wireMockServerCommands) {
         try {
             WireMockStub wireMockStub = start();
-            wireMockServerCommand.run(wireMockStub.getServer());
+
+            Runtime.getRuntime().addShutdownHook(new Thread(wireMockStub::stop));
+
+            for (WireMockServerCommand command : wireMockServerCommands)
+                command.run(wireMockStub.getServer());
 
             return wireMockStub;
         } catch (Exception e) {

@@ -3,7 +3,7 @@ package com.github.ankowals.example.kafka.tests;
 import com.github.ankowals.example.kafka.actors.StaticTopicTestConsumer;
 import com.github.ankowals.example.kafka.actors.StaticTopicTestProducer;
 import com.github.ankowals.example.kafka.IntegrationTestBase;
-import com.github.ankowals.example.kafka.framework.environment.kafka.commands.KafkaCreate;
+import com.github.ankowals.example.kafka.framework.environment.kafka.commands.KafkaTopics;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeAll;
@@ -27,7 +27,7 @@ public class StaticTopicTest extends IntegrationTestBase {
 
     @BeforeAll
     void createTopics() throws Exception {
-        KafkaCreate.topics("test-topic").run(this.getAdminClient());
+        KafkaTopics.create("test-topic").run(this.getAdminClient());
     }
 
     @BeforeEach

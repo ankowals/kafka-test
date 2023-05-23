@@ -19,8 +19,8 @@ public class IntegrationTestBase implements UsesKafka, UsesFilteringServiceStub,
     @Override
     public Map<String, String> getProperties() {
         Map<String, String> properties = new HashMap<>();
-        properties.putAll(getKafkaProperties());
-        properties.putAll(getFilteringServiceProperties());
+        properties.putAll(this.getKafkaProperties());
+        properties.putAll(this.getFilteringServiceProperties());
 
         return properties;
     }

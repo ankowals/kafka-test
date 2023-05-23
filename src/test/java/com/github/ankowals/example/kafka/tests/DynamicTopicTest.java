@@ -5,7 +5,7 @@ import com.github.ankowals.example.kafka.framework.actors.TestConsumer;
 import com.github.ankowals.example.kafka.actors.TestActorFactory;
 import com.github.ankowals.example.kafka.framework.actors.TestProducer;
 import com.github.ankowals.example.kafka.IntegrationTestBase;
-import com.github.ankowals.example.kafka.framework.environment.kafka.commands.KafkaCreate;
+import com.github.ankowals.example.kafka.framework.environment.kafka.commands.KafkaTopics;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
@@ -43,7 +43,7 @@ public class DynamicTopicTest extends IntegrationTestBase {
                 this.getProperties().get("kafka.bootstrap.servers"),
                 this.getProperties().get("kafka.schema.registry.url"));
 
-        KafkaCreate.topics(this.topic).run(this.getAdminClient());
+        KafkaTopics.create(this.topic).run(this.getAdminClient());
     }
 
     @Test

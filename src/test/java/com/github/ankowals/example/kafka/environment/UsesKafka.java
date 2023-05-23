@@ -1,7 +1,7 @@
 package com.github.ankowals.example.kafka.environment;
 
 import com.github.ankowals.example.kafka.framework.environment.kafka.Kafka;
-import com.github.ankowals.example.kafka.framework.environment.kafka.commands.KafkaCreate;
+import com.github.ankowals.example.kafka.framework.environment.kafka.commands.KafkaTopics;
 import org.apache.kafka.clients.admin.AdminClient;
 
 import java.util.HashMap;
@@ -9,7 +9,7 @@ import java.util.Map;
 
 public interface UsesKafka {
 
-    Kafka KAFKA_INSTANCE = Kafka.start(KafkaCreate.topics("word-input", "word-output"));
+    Kafka KAFKA_INSTANCE = Kafka.start(KafkaTopics.create("word-input", "word-output"));
 
     default AdminClient getAdminClient() { return KAFKA_INSTANCE.getAdminClient(); }
 

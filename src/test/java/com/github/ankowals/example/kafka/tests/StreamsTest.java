@@ -4,7 +4,7 @@ import com.github.ankowals.example.kafka.IntegrationTestBase;
 import com.github.ankowals.example.kafka.actors.TestActorFactory;
 import com.github.ankowals.example.kafka.framework.actors.TestConsumer;
 import com.github.ankowals.example.kafka.framework.actors.TestProducer;
-import com.github.ankowals.example.kafka.mocks.FilteringServiceStub;
+import com.github.ankowals.example.kafka.mocks.ConfigureFilteringServiceStubCommand;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import jakarta.inject.Inject;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -43,7 +43,7 @@ public class StreamsTest extends IntegrationTestBase {
 
         List<String> excludedRecords = List.of("Zonk", "Terefere");
 
-        FilteringServiceStub.configure()
+        ConfigureFilteringServiceStubCommand.configure()
                 .excludedValues(excludedRecords)
                 .run(this.getFilteringServiceStub());
 
