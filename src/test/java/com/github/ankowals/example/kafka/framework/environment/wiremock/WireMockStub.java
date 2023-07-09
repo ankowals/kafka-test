@@ -33,7 +33,7 @@ public class WireMockStub {
             Runtime.getRuntime().addShutdownHook(new Thread(wireMockStub::stop));
 
             for (WireMockServerCommand command : wireMockServerCommands)
-                command.run(wireMockStub.getServer());
+                command.using(wireMockStub.getServer());
 
             return wireMockStub;
         } catch (Exception e) {

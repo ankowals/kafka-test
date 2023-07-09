@@ -1,4 +1,4 @@
-package com.github.ankowals.example.kafka.framework.environment.kafka.commands;
+package com.github.ankowals.example.kafka.framework.environment.kafka.commands.admin;
 
 import org.apache.kafka.clients.admin.ListTopicsOptions;
 
@@ -9,7 +9,11 @@ import java.util.Set;
 public class KafkaTopics {
 
     public static AdminClientCommand create(String... names) {
-        return new CreateKafkaTopicCommand(new HashSet<>(Arrays.asList(names)));
+        return new TopicCreateCommand(new HashSet<>(Arrays.asList(names)));
+    }
+
+    public static AdminClientCommand delete(String... names) {
+        return new TopicDeleteCommand(new HashSet<>(Arrays.asList(names)));
     }
 
     public static AdminClientQuery<Set<String>> getNames() {

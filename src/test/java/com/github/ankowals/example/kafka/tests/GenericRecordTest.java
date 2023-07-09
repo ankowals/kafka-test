@@ -1,59 +1,60 @@
 package com.github.ankowals.example.kafka.tests;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.ankowals.example.kafka.data.GenericRecordMapper;
 import com.github.ankowals.example.kafka.model.EmailAddress;
 import com.github.ankowals.example.kafka.model.Subscriber;
 import com.github.ankowals.example.kafka.model.User;
-import com.github.ankowals.example.kafka.framework.environment.kafka.SchemaReader;
+import com.github.ankowals.example.kafka.framework.environment.kafka.SchemaLoader;
 import com.github.ankowals.example.kafka.data.GenericRecordJacksonMapper;
 import com.github.ankowals.example.kafka.data.builders.SubscriberRecordBuilder;
+import net.javacrumbs.jsonunit.assertj.JsonAssertions;
 import net.javacrumbs.jsonunit.core.Option;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 
 import static com.github.ankowals.example.kafka.data.GenericRecordFactory.email;
-import static com.github.ankowals.example.kafka.data.GenericRecordMapper.toGenericRecord;
-import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.json;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class GenericRecordTest {
 
-    private static final SchemaReader SCHEMA_READER = new SchemaReader();
+    private static final SchemaLoader SCHEMA_READER = new SchemaLoader();
 
     @Test
     public void shouldConvertToGenericRecord() throws IOException {
-        Schema schema = SCHEMA_READER.read("user.avro");
+        Schema schema = SCHEMA_READER.load("user.avro");
 
         User user = new User("Joe", 1, "red");
 
-        GenericRecord record = toGenericRecord(user, schema);
+        GenericRecord record = GenericRecordMapper.toGenericRecord(user, schema);
 
-        assertThatJson(record.toString()).and(
+        JsonAssertions.assertThatJson(record.toString()).and(
                 a -> a.node("name").isEqualTo("Joe"),
                 a -> a.node("favorite_number").isEqualTo(1),
                 a -> a.node("favorite_color").isEqualTo("red"));
 
         User actual = new ObjectMapper().readValue(String.valueOf(record), User.class);
 
-        assertThat(actual.getName()).isEqualTo("Joe");
-        assertThat(actual.getFavorite_color()).isEqualTo("red");
-        assertThat(actual.getFavorite_number()).isEqualTo(1);
+        Assertions.assertThat(actual.getName()).isEqualTo("Joe");
+        Assertions.assertThat(actual.getFavorite_color()).isEqualTo("red");
+        Assertions.assertThat(actual.getFavorite_number()).isEqualTo(1);
     }
 
     @Test
     public void shouldConvertToGenericRecordUsingJacksonMapper() throws IOException {
-        Schema schema = SCHEMA_READER.read("user.avro");
+        Schema schema = SCHEMA_READER.load("user.avro");
 
         User user = new User("Joe", 1, "red");
 
         GenericRecord record = GenericRecordJacksonMapper.toGenericRecord(user, schema);
 
-        assertThatJson(record.toString())
+        JsonAssertions.assertThatJson(record.toString())
                 .isEqualTo("{ name: 'Joe', favorite_number: 1, favorite_color: 'red'}");
     }
 
@@ -74,8 +75,8 @@ public class GenericRecordTest {
 
         System.out.println(record.toString());
 
-        assertThat(GenericData.get().validate(builder.getSchema(), record)).isTrue();
-        assertThatJson(record.toString()).when(Option.IGNORING_ARRAY_ORDER).and(
+        Assertions.assertThat(GenericData.get().validate(builder.getSchema(), record)).isTrue();
+        JsonAssertions.assertThatJson(record.toString()).when(Option.IGNORING_ARRAY_ORDER).and(
                 a -> a.node("id").isEqualTo(1),
                 a -> a.node("fname").isEqualTo("John"),
                 a -> a.node("lname").isEqualTo("Doe"),
@@ -102,12 +103,12 @@ public class GenericRecordTest {
                 .emailAddress(EmailAddress.builder().email("fourth@terefere.com").build())
                 .build();
 
-        Schema schema = SCHEMA_READER.read("subscriber.avro");
-        GenericRecord record = toGenericRecord(subscriber, schema);
+        Schema schema = SCHEMA_READER.load("subscriber.avro");
+        GenericRecord record = GenericRecordMapper.toGenericRecord(subscriber, schema);
 
         System.out.println(record.toString());
 
-        assertThatJson(record.toString()).when(Option.IGNORING_ARRAY_ORDER).and(
+        JsonAssertions.assertThatJson(record.toString()).when(Option.IGNORING_ARRAY_ORDER).and(
                 a -> a.node("id").isEqualTo(1),
                 a -> a.node("fname").isEqualTo("John"),
                 a -> a.node("lname").isEqualTo("Doe"),

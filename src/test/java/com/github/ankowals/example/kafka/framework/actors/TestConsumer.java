@@ -3,6 +3,7 @@ package com.github.ankowals.example.kafka.framework.actors;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.awaitility.Awaitility;
 
 import java.time.Duration;
 import java.util.List;
@@ -10,7 +11,6 @@ import java.util.concurrent.*;
 import java.util.function.Predicate;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static org.awaitility.Awaitility.await;
 
 public class TestConsumer<K, V> {
 
@@ -25,7 +25,7 @@ public class TestConsumer<K, V> {
     public TestConsumer(String topic, KafkaConsumer<K, V> kafkaConsumer) {
         this.buffer = new CopyOnWriteArrayList<>();
         this.kafkaConsumer = kafkaConsumer;
-        this.kafkaConsumer.subscribe(List.of(validateTopic(topic)));
+        this.kafkaConsumer.subscribe(List.of(this.validateTopic(topic)));
     }
 
     public List<V> consume() {
@@ -54,7 +54,7 @@ public class TestConsumer<K, V> {
             Callable<List<V>> supplier = this::getBufferCopy;
             this.startConsuming();
 
-            return await().atMost(timeout).until(supplier, predicate);
+            return Awaitility.await().atMost(timeout).until(supplier, predicate);
         } finally {
             this.service.awaitTermination(300, MILLISECONDS);
             this.consumingTask.cancel(true);

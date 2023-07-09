@@ -1,13 +1,8 @@
 package com.github.ankowals.example.kafka.framework;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.file.NoSuchFileException;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.stream.Collectors;
-
-import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class ResourceUtils {
     
@@ -15,10 +10,10 @@ public class ResourceUtils {
         ClassLoader classLoader = ClassLoader.getSystemClassLoader();
         try (InputStream inputStream = classLoader.getResourceAsStream(path)) {
             if (inputStream == null)
-                throw new NoSuchFileException("Resource file " + path + " was not found!");
+                throw new FileNotFoundException(String.format("Resource file '%s' not found!", path));
 
-            try(InputStreamReader inputStreamReader = new InputStreamReader(inputStream, UTF_8);
-             BufferedReader bufferedReader = new BufferedReader(inputStreamReader)) {
+            try (InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
+                BufferedReader bufferedReader = new BufferedReader(inputStreamReader)) {
                 return bufferedReader.lines().collect(Collectors.joining(System.lineSeparator()));
             }
         }

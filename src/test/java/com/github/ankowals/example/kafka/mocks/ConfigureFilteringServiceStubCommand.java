@@ -32,7 +32,7 @@ public class ConfigureFilteringServiceStubCommand implements WireMockServerComma
     }
 
     @Override
-    public void run(WireMockServer wireMockServer) throws Exception {
+    public void using(WireMockServer wireMockServer) throws Exception {
         wireMockServer.resetAll();
         wireMockServer.stubFor(this.get("/excluded-values")
                 .willReturn(response(this.objectWriter.writeValueAsString(this.excludedValues))));

@@ -1,6 +1,6 @@
 package com.github.ankowals.example.kafka.data.builders;
 
-import com.github.ankowals.example.kafka.framework.environment.kafka.SchemaReader;
+import com.github.ankowals.example.kafka.framework.environment.kafka.SchemaLoader;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
@@ -16,7 +16,7 @@ public class SubscriberRecordBuilder {
     private final List<GenericRecord> emailAddressesList;
 
     public SubscriberRecordBuilder() throws IOException {
-        this.schema = new SchemaReader().read("subscriber.avro");
+        this.schema = new SchemaLoader().load("subscriber.avro");
         this.record = new GenericData.Record(this.schema);
         this.emailAddressesList = new ArrayList();
     }

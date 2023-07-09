@@ -5,11 +5,11 @@ import org.apache.avro.Schema;
 
 import java.io.IOException;
 
-public class SchemaReader {
+public class SchemaLoader {
 
     private final Schema.Parser parser = new Schema.Parser();
 
-    public Schema read(String path) throws IOException {
+    public Schema load(String path) throws IOException {
         return this.parser.parse(ResourceUtils.getResourceContent(path));
     }
 }

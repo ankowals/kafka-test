@@ -8,10 +8,10 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 @Singleton
-@KafkaListener(groupId = "static-topic-test-consumers", clientId = "static-topic-test-consumer")
-public class StaticTopicTestConsumer {
+@KafkaListener(groupId = "list-buffered-static-topic-test-consumers", clientId = "list-buffered-static-topic-test-consumer")
+public class ListBufferedStaticTopicTestConsumer {
 
-    private final CopyOnWriteArrayList<String> buffer = new CopyOnWriteArrayList<>();
+    private final List<String> buffer = new CopyOnWriteArrayList<>();
 
     @Topic("test-topic")
     public void consume(String record) {
