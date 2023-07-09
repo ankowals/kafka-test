@@ -47,7 +47,11 @@ public class TestActors {
     public <K, V> TestConsumer<K, V> consumer(String topic,
                                               Class<? extends Deserializer<K>> keyDeserializerClass,
                                               Class<? extends Deserializer<V>> valueDeserializerClass) {
-        return this.consumer(topic, this.createConsumerProperties(keyDeserializerClass.getName(), valueDeserializerClass.getName()));
+        Properties properties = this.createConsumerProperties();
+        properties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, keyDeserializerClass.getName());
+        properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, valueDeserializerClass.getName());
+
+        return this.consumer(topic, properties);
     }
 
     public <K, V> TestProducer<K, V> producer(String topic, Properties properties) {
@@ -61,29 +65,17 @@ public class TestActors {
     public <K, V> TestProducer<K, V> producer(String topic,
                                               Class<? extends Serializer<K>> keySerializerClass,
                                               Class<? extends Serializer<V>> valueSerializerClass) {
-        return this.producer(topic, this.createProducerProperties(keySerializerClass.getName(), valueSerializerClass.getName()));
-    }
-
-    private Properties createConsumerProperties(String keyDeserializerClassName, String valueDeserializerClassName) {
-        Properties properties = this.createConsumerProperties();
-        properties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, keyDeserializerClassName);
-        properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, valueDeserializerClassName);
-
-        return properties;
-    }
-
-    private Properties createProducerProperties(String keySerializer, String valueSerializer) {
         Properties properties = this.createProducerProperties();
-        properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, keySerializer);
-        properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, valueSerializer);
+        properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, keySerializerClass.getName());
+        properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, valueSerializerClass.getName());
 
-        return properties;
+        return this.producer(topic, properties);
     }
 
     private Properties createConsumerProperties() {
         Properties properties = new Properties();
-        properties.put(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG, bootstrapServer);
-        properties.put(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, schemaRegistryUrl);
+        properties.put(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG, this.bootstrapServer);
+        properties.put(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, this.schemaRegistryUrl);
 
         properties.put(ConsumerConfig.CLIENT_ID_CONFIG, "test-consumer-" + RandomStringUtils.randomAlphabetic(11));
         properties.put(ConsumerConfig.GROUP_ID_CONFIG, "test-consumer-group-" + RandomStringUtils.randomAlphabetic(11));
@@ -97,8 +89,8 @@ public class TestActors {
 
     private Properties createProducerProperties() {
         Properties properties = new Properties();
-        properties.put(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG, bootstrapServer);
-        properties.put(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, schemaRegistryUrl);
+        properties.put(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG, this.bootstrapServer);
+        properties.put(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, this.schemaRegistryUrl);
 
         properties.put(ProducerConfig.CLIENT_ID_CONFIG, "test-producer-" + RandomStringUtils.randomAlphabetic(11));
         properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, BytesSerializer.class.getName());
