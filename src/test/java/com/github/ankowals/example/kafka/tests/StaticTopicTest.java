@@ -8,13 +8,12 @@ import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import jakarta.inject.Inject;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.assertj.core.api.Assertions;
+import org.awaitility.Awaitility;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
-
-import static org.awaitility.Awaitility.await;
 
 @MicronautTest
 public class StaticTopicTest extends IntegrationTestBase {
@@ -32,7 +31,7 @@ public class StaticTopicTest extends IntegrationTestBase {
 
     @BeforeEach
     void clearBuffer() {
-        this.testConsumer.clearBuffer();
+        this.testConsumer.clear();
     }
 
     @Test
@@ -41,7 +40,7 @@ public class StaticTopicTest extends IntegrationTestBase {
 
         this.testProducer.produce(record);
 
-        await().untilAsserted(() -> {
+        Awaitility.await().untilAsserted(() -> {
                 List<String> records = this.testConsumer.getRecords();
                 Assertions.assertThat(records).contains(record);
         });

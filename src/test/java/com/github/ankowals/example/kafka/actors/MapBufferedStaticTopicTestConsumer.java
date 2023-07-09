@@ -10,7 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @Singleton
-@KafkaListener(groupId = "map-buffered-static-topic-test-consumers", clientId = "map-buffered-static-topic-test-consumer")
+@KafkaListener(groupId = "map-buffered-topic-test-consumers", clientId = "map-buffered-topic-test-consumer")
 public class MapBufferedStaticTopicTestConsumer<T> {
 
     private final Map<String, T> buffer = new ConcurrentHashMap<>();
@@ -35,7 +35,7 @@ public class MapBufferedStaticTopicTestConsumer<T> {
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
-    public void clearBuffer() {
+    public void clear() {
         this.buffer.clear();
     }
 }

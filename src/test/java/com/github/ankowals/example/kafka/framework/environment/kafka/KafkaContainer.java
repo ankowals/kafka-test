@@ -10,7 +10,6 @@ import org.testcontainers.utility.DockerImageName;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.time.temporal.ChronoUnit;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
@@ -24,7 +23,7 @@ public class KafkaContainer extends GenericContainer<KafkaContainer> {
     public KafkaContainer(DockerImageName dockerImageName) {
         super(dockerImageName);
         this.withEnv("KAFKA_LISTENERS", "PLAINTEXT://0.0.0.0:9093, BROKER://0.0.0.0:9092")
-                .withEnv("PRE_SETUP_FILE", "/usr/local/bin/setup-and-run.sh")
+                .withEnv("PRE_SETUP_FILE", "/advertise_listeners.sh")
                 .withEnv("KAFKA_LISTENER_SECURITY_PROTOCOL_MAP", "PLAINTEXT:PLAINTEXT, BROKER:PLAINTEXT")
                 .withEnv("KAFKA_INTER_BROKER_LISTENER_NAME", "BROKER")
                 .withEnv("KAFKA_BROKER_ID", "1")
@@ -36,14 +35,14 @@ public class KafkaContainer extends GenericContainer<KafkaContainer> {
                 .withExposedPorts(3030, 8081, 9092, 9093)
                 .waitingFor(Wait.forHttp("/subjects").forPort(8081)
                         .forStatusCode(200)
-                        .withStartupTimeout(Duration.of(1, ChronoUnit.MINUTES)));
+                        .withStartupTimeout(Duration.ofMinutes(1)));
     }
 
     public String getBootstrapServers() {
         if (this.port == -1)
             throw new IllegalStateException("You should start Kafka container first!");
 
-        return String.format("PLAINTEXT://%s%s", this.getHost(), this.port);
+        return String.format("PLAINTEXT://%s:%s", this.getHost(), this.port);
     }
 
     public String getSchemaRegistryUrl() {
@@ -54,8 +53,8 @@ public class KafkaContainer extends GenericContainer<KafkaContainer> {
     protected void doStart() {
         this.withCommand("sh", "-c",
                 "while [ ! -f /advertise_listeners.sh ]; do " +
-                        "sleep 0.1; " +
-                        "done; " +
+                        "sleep 0.1;" +
+                        "done;" +
                         "/usr/local/bin/setup-and-run.sh");
         super.doStart();
     }
@@ -64,9 +63,8 @@ public class KafkaContainer extends GenericContainer<KafkaContainer> {
     protected void containerIsStarting(InspectContainerResponse containerInfo, boolean reused) {
         super.containerIsStarting(containerInfo, reused);
         this.port = this.getMappedPort(9093);
-        String command = this.createCommand(containerInfo);
         this.copyFileToContainer(
-                Transferable.of(command.getBytes(StandardCharsets.UTF_8), 0777),
+                Transferable.of(this.createCommand(containerInfo).getBytes(StandardCharsets.UTF_8), 0777),
                 "/advertise_listeners.sh");
     }
 

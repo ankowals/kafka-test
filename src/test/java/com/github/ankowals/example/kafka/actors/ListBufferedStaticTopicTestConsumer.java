@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 @Singleton
-@KafkaListener(groupId = "list-buffered-static-topic-test-consumers", clientId = "list-buffered-static-topic-test-consumer")
+@KafkaListener(groupId = "list-buffered-topic-test-consumers", clientId = "list-buffered-topic-test-consumer")
 public class ListBufferedStaticTopicTestConsumer {
 
     private final List<String> buffer = new CopyOnWriteArrayList<>();
@@ -22,7 +22,7 @@ public class ListBufferedStaticTopicTestConsumer {
         return List.copyOf(this.buffer);
     }
 
-    public void clearBuffer() {
+    public void clear() {
         this.buffer.clear();
     }
 }
