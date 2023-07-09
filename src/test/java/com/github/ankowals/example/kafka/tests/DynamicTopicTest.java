@@ -16,6 +16,7 @@ import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.generic.GenericRecordBuilder;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.RandomUtils;
 import org.apache.kafka.common.serialization.IntegerDeserializer;
 import org.apache.kafka.common.serialization.IntegerSerializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -33,7 +34,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.IntStream;
 
-import static org.apache.commons.lang3.RandomUtils.nextInt;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @MicronautTest
@@ -51,7 +51,7 @@ public class DynamicTopicTest extends IntegrationTestBase {
 
     @Test
     public void shouldConsumeRecords() {
-        Integer record = nextInt();
+        Integer record = RandomUtils.nextInt();
 
         TestProducer<String, Integer> producer = this.testActors.producer(this.topic, StringSerializer.class, IntegerSerializer.class);
         TestConsumer<String, Integer> consumer = this.testActors.consumer(this.topic, StringDeserializer.class, IntegerDeserializer.class);

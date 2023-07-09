@@ -19,15 +19,12 @@ import java.util.Properties;
 
 public class TestActors {
 
-    private final Properties properties;
+    private final String bootstrapServer;
+    private final String schemaRegistryUrl;
 
     public TestActors(String bootstrapServer, String schemaRegistryUrl) {
-        this.properties = new Properties();
-        this.properties.put(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG, bootstrapServer);
-        this.properties.put(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, schemaRegistryUrl);
-
-        this.setConsumerProperties();
-        this.setProducerProperties();
+        this.bootstrapServer = bootstrapServer;
+        this.schemaRegistryUrl = schemaRegistryUrl;
     }
 
     public TestActors(String bootstrapServer) {
@@ -35,66 +32,81 @@ public class TestActors {
     }
 
     public TestActors(Properties properties) {
-        this.properties = properties;
+        this.bootstrapServer = properties.getProperty(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG, "");
+        this.schemaRegistryUrl = properties.getProperty(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, "");
+    }
+
+    public <K, V> TestConsumer<K, V> consumer(String topic, Properties properties) {
+        return new TestConsumer<>(topic, new KafkaConsumer<>(properties));
     }
 
     public <K, V> TestConsumer<K, V> consumer(String topic) {
-        return consumer(topic,
-                this.properties.get(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG).toString(),
-                this.properties.get(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG).toString());
+        return this.consumer(topic, this.createConsumerProperties());
     }
 
     public <K, V> TestConsumer<K, V> consumer(String topic,
                                               Class<? extends Deserializer<K>> keyDeserializerClass,
                                               Class<? extends Deserializer<V>> valueDeserializerClass) {
-        return this.consumer(topic, keyDeserializerClass.getName(), valueDeserializerClass.getName());
+        return this.consumer(topic, this.createConsumerProperties(keyDeserializerClass.getName(), valueDeserializerClass.getName()));
     }
 
-    private <K, V> TestConsumer<K, V> consumer(String topic,
-                                               String keyDeserializerClassName,
-                                               String valueDeserializerClassName) {
-        this.properties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, keyDeserializerClassName);
-        this.properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, valueDeserializerClassName);
-
-        this.properties.put(ConsumerConfig.CLIENT_ID_CONFIG, "test-consumer-" + RandomStringUtils.randomAlphabetic(11));
-        this.properties.put(ConsumerConfig.GROUP_ID_CONFIG, "test-consumer-group-" + RandomStringUtils.randomAlphabetic(11));
-
-        return new TestConsumer<>(topic, new KafkaConsumer<>(this.properties));
+    public <K, V> TestProducer<K, V> producer(String topic, Properties properties) {
+        return new TestProducer<>(topic, new KafkaProducer<>(properties));
     }
 
     public <K, V> TestProducer<K, V> producer(String topic) {
-        return producer(topic,
-                this.properties.get(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG).toString(),
-                this.properties.get(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG).toString());
+        return this.producer(topic, this.createProducerProperties());
     }
 
     public <K, V> TestProducer<K, V> producer(String topic,
                                               Class<? extends Serializer<K>> keySerializerClass,
                                               Class<? extends Serializer<V>> valueSerializerClass) {
-        return this.producer(topic, keySerializerClass.getName(), valueSerializerClass.getName());
+        return this.producer(topic, this.createProducerProperties(keySerializerClass.getName(), valueSerializerClass.getName()));
     }
 
-    private <K, V> TestProducer<K, V> producer(String topic, String keySerializerClassName, String valueSerializerClassName) {
-        this.properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, keySerializerClassName);
-        this.properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, valueSerializerClassName);
+    private Properties createConsumerProperties(String keyDeserializerClassName, String valueDeserializerClassName) {
+        Properties properties = this.createConsumerProperties();
+        properties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, keyDeserializerClassName);
+        properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, valueDeserializerClassName);
 
-        this.properties.put(ProducerConfig.CLIENT_ID_CONFIG, "test-producer-" + RandomStringUtils.randomAlphabetic(11));
-
-        return new TestProducer<>(topic, new KafkaProducer<>(this.properties));
+        return properties;
     }
 
-    private void setConsumerProperties() {
-        this.properties.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-        this.properties.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
-        this.properties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, BytesDeserializer.class.getName());
-        this.properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, GenericAvroDeserializer.class.getName());
+    private Properties createProducerProperties(String keySerializer, String valueSerializer) {
+        Properties properties = this.createProducerProperties();
+        properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, keySerializer);
+        properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, valueSerializer);
+
+        return properties;
     }
 
-    private void setProducerProperties() {
-        this.properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, BytesSerializer.class.getName());
-        this.properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, KafkaAvroSerializer.class.getName());
-        this.properties.put(KafkaAvroSerializerConfig.AVRO_USE_LOGICAL_TYPE_CONVERTERS_CONFIG, true);
-        this.properties.put(KafkaAvroSerializerConfig.AUTO_REGISTER_SCHEMAS, false);
-        this.properties.put(KafkaAvroSerializerConfig.USE_LATEST_VERSION, true);
+    private Properties createConsumerProperties() {
+        Properties properties = new Properties();
+        properties.put(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG, bootstrapServer);
+        properties.put(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, schemaRegistryUrl);
+
+        properties.put(ConsumerConfig.CLIENT_ID_CONFIG, "test-consumer-" + RandomStringUtils.randomAlphabetic(11));
+        properties.put(ConsumerConfig.GROUP_ID_CONFIG, "test-consumer-group-" + RandomStringUtils.randomAlphabetic(11));
+        properties.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+        properties.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
+        properties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, BytesDeserializer.class.getName());
+        properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, GenericAvroDeserializer.class.getName());
+
+        return properties;
+    }
+
+    private Properties createProducerProperties() {
+        Properties properties = new Properties();
+        properties.put(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG, bootstrapServer);
+        properties.put(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, schemaRegistryUrl);
+
+        properties.put(ProducerConfig.CLIENT_ID_CONFIG, "test-producer-" + RandomStringUtils.randomAlphabetic(11));
+        properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, BytesSerializer.class.getName());
+        properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, KafkaAvroSerializer.class.getName());
+        properties.put(KafkaAvroSerializerConfig.AVRO_USE_LOGICAL_TYPE_CONVERTERS_CONFIG, true);
+        properties.put(KafkaAvroSerializerConfig.AUTO_REGISTER_SCHEMAS, false);
+        properties.put(KafkaAvroSerializerConfig.USE_LATEST_VERSION, true);
+
+        return properties;
     }
 }
