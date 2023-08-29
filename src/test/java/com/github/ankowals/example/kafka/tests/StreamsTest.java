@@ -6,7 +6,7 @@ import com.github.ankowals.example.kafka.framework.actors.TestConsumer;
 import com.github.ankowals.example.kafka.framework.actors.TestProducer;
 import com.github.ankowals.example.kafka.framework.environment.wiremock.RequestNumberAssertion;
 import com.github.ankowals.example.kafka.mocks.ConfigureMock;
-import com.github.ankowals.example.kafka.predicates.Predicates;
+import com.github.ankowals.example.kafka.predicates.RecordPredicates;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import jakarta.inject.Inject;
@@ -45,7 +45,7 @@ public class StreamsTest extends IntegrationTestBase {
 
         ConfigureMock.filteringService()
                 .excludedValues(excluded)
-                .using(this.getFilteringServiceStub());
+                .run(this.getFilteringServiceStub());
 
         List<String> expected = List.of(
                 RandomStringUtils.randomAlphabetic(8),
@@ -58,7 +58,7 @@ public class StreamsTest extends IntegrationTestBase {
 
         producer.close();
 
-        List<String> actual = consumer.consumeUntil(Predicates.containsAll(expected));
+        List<String> actual = consumer.consumeUntil(RecordPredicates.containsAll(expected));
 
         Assertions.assertThat(actual).doesNotHaveDuplicates();
         Assertions.assertThat(actual).doesNotContain(excluded.toArray(String[]::new));

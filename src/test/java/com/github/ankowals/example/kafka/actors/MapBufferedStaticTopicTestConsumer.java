@@ -18,7 +18,6 @@ public class MapBufferedStaticTopicTestConsumer<T> {
     @Topic("test-topic")
     public void consume(ConsumerRecord<String, T> record) {
         if (record.key() == null) {
-            this.buffer.put("null-" + record.offset(), record.value());
             System.out.printf("No key for record at offset %s, topic %s, partition %s%n",
                     record.offset(),
                     record.topic(),

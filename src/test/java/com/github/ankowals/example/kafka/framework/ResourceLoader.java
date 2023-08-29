@@ -4,9 +4,9 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.stream.Collectors;
 
-public class ResourceUtils {
+public class ResourceLoader {
     
-    public static String getResourceContent(String path) throws IOException {
+    public static String load(String path) throws IOException {
         ClassLoader classLoader = ClassLoader.getSystemClassLoader();
         try (InputStream inputStream = classLoader.getResourceAsStream(path)) {
             if (inputStream == null)

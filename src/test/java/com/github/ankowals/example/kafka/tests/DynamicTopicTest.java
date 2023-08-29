@@ -1,13 +1,13 @@
 package com.github.ankowals.example.kafka.tests;
 
 import com.github.ankowals.example.kafka.framework.actors.TestActors;
-import com.github.ankowals.example.kafka.framework.environment.kafka.SchemaLoader;
+import com.github.ankowals.example.kafka.framework.environment.kafka.Schemas;
 import com.github.ankowals.example.kafka.framework.actors.TestConsumer;
 import com.github.ankowals.example.kafka.framework.actors.TestProducer;
 import com.github.ankowals.example.kafka.IntegrationTestBase;
 import com.github.ankowals.example.kafka.framework.environment.kafka.commands.admin.KafkaTopics;
 import com.github.ankowals.example.kafka.framework.environment.kafka.commands.registry.SchemaRegistrySubjects;
-import com.github.ankowals.example.kafka.predicates.Predicates;
+import com.github.ankowals.example.kafka.predicates.RecordPredicates;
 import io.confluent.kafka.schemaregistry.avro.AvroSchema;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import jakarta.inject.Inject;
@@ -41,6 +41,7 @@ public class DynamicTopicTest extends IntegrationTestBase {
 
     @Inject
     private TestActors testActors;
+
     private String topic;
 
     @BeforeEach
@@ -73,7 +74,7 @@ public class DynamicTopicTest extends IntegrationTestBase {
             producer.close();
         });
 
-        List<String> actual = consumer.consumeUntil(Predicates.numberOfRecordsIs(999));
+        List<String> actual = consumer.consumeUntil(RecordPredicates.sizeIs(999));
 
         Assertions.assertThat(actual.size()).isEqualTo(999);
         Assertions.assertThat(actual).contains("terefere-999");
@@ -104,7 +105,7 @@ public class DynamicTopicTest extends IntegrationTestBase {
             producer.close();
         });
 
-        List<Integer> actual = consumer.consumeUntil(Predicates.anyRecordFound());
+        List<Integer> actual = consumer.consumeUntil(RecordPredicates.anyFound());
 
         Assertions.assertThat(actual.size()).isGreaterThanOrEqualTo(1);
     }
@@ -155,14 +156,14 @@ public class DynamicTopicTest extends IntegrationTestBase {
             producer.close();
         });
 
-        List<String> actual = consumer.consumeUntil(Predicates.containsAll(expected));
+        List<String> actual = consumer.consumeUntil(RecordPredicates.containsAll(expected));
 
         Assertions.assertThat(actual).doesNotHaveDuplicates();
     }
 
     @Test
     public void shouldConsumeGenericRecord() throws Exception {
-        Schema schema = new SchemaLoader().load("user.avro");
+        Schema schema = new Schemas().load("user.avro");
         SchemaRegistrySubjects.register(this.topic, new AvroSchema(schema)).using(this.getSchemaRegistryClient());
 
         TestProducer<Bytes, Object> producer = this.testActors.producer(this.topic);
@@ -177,9 +178,9 @@ public class DynamicTopicTest extends IntegrationTestBase {
                 .build();
 
         producer.produce(record);
-        GenericRecord actual = consumer.consumeUntilMatch(Predicates.recordNameEquals(name));
+        GenericRecord actual = consumer.consumeUntilMatch(RecordPredicates.nameEquals(name));
 
-        assertThat(actual.toString())
+        Assertions.assertThat(actual.toString())
                 .isEqualTo("{\"name\": \"" + name + "\", " +
                         "\"favorite_number\": 7, " +
                         "\"favorite_color\": \"blue\"}");

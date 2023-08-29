@@ -13,9 +13,6 @@ import wiremock.org.apache.hc.core5.http.ContentType;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
-
 public class ConfigureFilteringServiceStubCommand implements WireMockServerCommand {
 
     private final ObjectWriter objectWriter;
@@ -32,18 +29,18 @@ public class ConfigureFilteringServiceStubCommand implements WireMockServerComma
     }
 
     @Override
-    public void using(WireMockServer wireMockServer) throws Exception {
+    public void run(WireMockServer wireMockServer) throws Exception {
         wireMockServer.resetAll();
         wireMockServer.stubFor(this.get("/excluded-values")
                 .willReturn(response(this.objectWriter.writeValueAsString(this.excludedValues))));
     }
 
     private MappingBuilder get(String path) {
-        return WireMock.get(urlPathMatching(path));
+        return WireMock.get(WireMock.urlPathMatching(path));
     }
 
     private ResponseDefinitionBuilder response(String body) {
-        return aResponse().withStatus(HttpStatus.OK.getCode())
+        return WireMock.aResponse().withStatus(HttpStatus.OK.getCode())
                 .withHeader("Content-Type", ContentType.APPLICATION_JSON.getMimeType())
                 .withBody(body);
     }

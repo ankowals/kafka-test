@@ -5,7 +5,7 @@ import com.github.ankowals.example.kafka.data.GenericRecordMapper;
 import com.github.ankowals.example.kafka.model.EmailAddress;
 import com.github.ankowals.example.kafka.model.Subscriber;
 import com.github.ankowals.example.kafka.model.User;
-import com.github.ankowals.example.kafka.framework.environment.kafka.SchemaLoader;
+import com.github.ankowals.example.kafka.framework.environment.kafka.Schemas;
 import com.github.ankowals.example.kafka.data.GenericRecordJacksonMapper;
 import com.github.ankowals.example.kafka.data.builders.SubscriberRecordBuilder;
 import net.javacrumbs.jsonunit.assertj.JsonAssertions;
@@ -20,11 +20,10 @@ import java.io.IOException;
 
 import static com.github.ankowals.example.kafka.data.GenericRecordFactory.email;
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.json;
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class GenericRecordTest {
 
-    private static final SchemaLoader SCHEMA_READER = new SchemaLoader();
+    private static final Schemas SCHEMA_READER = new Schemas();
 
     @Test
     public void shouldConvertToGenericRecord() throws IOException {
@@ -73,8 +72,6 @@ public class GenericRecordTest {
                 .emailAddress(email("fourth@terefere.com"))
                 .build();
 
-        System.out.println(record.toString());
-
         Assertions.assertThat(GenericData.get().validate(builder.getSchema(), record)).isTrue();
         JsonAssertions.assertThatJson(record.toString()).when(Option.IGNORING_ARRAY_ORDER).and(
                 a -> a.node("id").isEqualTo(1),
@@ -105,8 +102,6 @@ public class GenericRecordTest {
 
         Schema schema = SCHEMA_READER.load("subscriber.avro");
         GenericRecord record = GenericRecordMapper.toGenericRecord(subscriber, schema);
-
-        System.out.println(record.toString());
 
         JsonAssertions.assertThatJson(record.toString()).when(Option.IGNORING_ARRAY_ORDER).and(
                 a -> a.node("id").isEqualTo(1),
