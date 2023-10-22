@@ -16,13 +16,13 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 @MicronautTest
-public class StaticTopicTest extends IntegrationTestBase {
+class StaticTopicTest extends IntegrationTestBase {
 
     @Inject
-    public StaticTopicTestProducer testProducer;
+    StaticTopicTestProducer testProducer;
 
     @Inject
-    public ListBufferedStaticTopicTestConsumer testConsumer;
+    ListBufferedStaticTopicTestConsumer testConsumer;
 
     @BeforeAll
     void createTopics() throws Exception {
@@ -35,7 +35,7 @@ public class StaticTopicTest extends IntegrationTestBase {
     }
 
     @Test
-    public void shouldConsumeProducedRecords() {
+    void shouldConsumeProducedRecords() {
         String record = RandomStringUtils.randomAlphabetic(11);
 
         this.testProducer.produce(record);

@@ -21,12 +21,12 @@ import java.io.IOException;
 import static com.github.ankowals.example.kafka.data.GenericRecordFactory.email;
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.json;
 
-public class GenericRecordTest {
+class GenericRecordTest {
 
     private static final Schemas SCHEMA_READER = new Schemas();
 
     @Test
-    public void shouldConvertToGenericRecord() throws IOException {
+    void shouldConvertToGenericRecord() throws IOException {
         Schema schema = SCHEMA_READER.load("user.avro");
 
         User user = new User("Joe", 1, "red");
@@ -46,7 +46,7 @@ public class GenericRecordTest {
     }
 
     @Test
-    public void shouldConvertToGenericRecordUsingJacksonMapper() throws IOException {
+    void shouldConvertToGenericRecordUsingJacksonMapper() throws IOException {
         Schema schema = SCHEMA_READER.load("user.avro");
 
         User user = new User("Joe", 1, "red");
@@ -58,7 +58,7 @@ public class GenericRecordTest {
     }
 
     @Test
-    public void shouldBuildSubscriberGenericRecord() throws Exception {
+    void shouldBuildSubscriberGenericRecord() throws Exception {
         SubscriberRecordBuilder builder = SubscriberRecordBuilder.builder();
         GenericRecord record = builder
                 .age(17)
@@ -87,7 +87,7 @@ public class GenericRecordTest {
     }
 
     @Test
-    public void shouldMapToSubscriberGenericRecord() throws IOException {
+    void shouldMapToSubscriberGenericRecord() throws IOException {
         Subscriber subscriber = Subscriber.builder()
                 .age(17)
                 .id(1)

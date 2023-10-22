@@ -19,17 +19,19 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Stream;
 
 @MicronautTest
-public class StreamsTest extends IntegrationTestBase {
+class StreamsTest extends IntegrationTestBase {
 
     @Inject
-    private TestActors testActors;
+    TestActors testActors;
 
     @Inject
-    private KafkaStreams kafkaStreams;
+    KafkaStreams kafkaStreams;
 
     @BeforeEach
     void setupStreams() {
@@ -37,41 +39,39 @@ public class StreamsTest extends IntegrationTestBase {
     }
 
     @Test
-    public void shouldFilterOutValues() throws Exception {
+    void shouldFilterOutValues() throws Exception {
         TestProducer<String, String> producer = this.createProducer();
         TestConsumer<String, String> consumer = this.createConsumer();
 
         List<String> excluded = List.of("Zonk", "Terefere");
-
-        ConfigureMock.filteringService()
-                .excludedValues(excluded)
-                .run(this.getFilteringServiceStub());
 
         List<String> expected = List.of(
                 RandomStringUtils.randomAlphabetic(8),
                 RandomStringUtils.randomAlphabetic(8),
                 RandomStringUtils.randomAlphabetic(8));
 
-        this.mergeAndShuffle(excluded, expected)
-                .stream().parallel()
-                .forEach(producer::send);
-
+        ConfigureMock.filteringService()
+                .excludedValues(excluded)
+                .run(this.getFilteringServiceStub());
+        
+        this.shuffle(excluded, expected).stream().parallel().forEach(producer::send);
         producer.close();
-
         List<String> actual = consumer.consumeUntil(RecordPredicates.containsAll(expected));
 
-        Assertions.assertThat(actual).doesNotHaveDuplicates();
-        Assertions.assertThat(actual).doesNotContain(excluded.toArray(String[]::new));
+        Assertions.assertThat(actual)
+                .doesNotHaveDuplicates()
+                .doesNotContain(excluded.toArray(String[]::new));
 
         RequestNumberAssertion.assertThat(this.getFilteringServiceStub())
                 .received(WireMock.moreThanOrExactly(1))
                 .requestForEachStubPattern();
     }
 
-    private List<String> mergeAndShuffle(List<String> list1, List<String> list2) {
-        List<String> tmp = new ArrayList<>();
-        tmp.addAll(list1);
-        tmp.addAll(list2);
+    @SafeVarargs
+    private List<String> shuffle(List<String>... lists) {
+        List<String> tmp = new ArrayList<>(Stream.of(lists)
+                .flatMap(Collection::stream)
+                .toList());
 
         Collections.shuffle(tmp);
 

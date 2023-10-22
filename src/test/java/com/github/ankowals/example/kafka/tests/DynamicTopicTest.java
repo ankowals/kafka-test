@@ -28,21 +28,21 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.IntStream;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import java.util.stream.Stream;
 
 @MicronautTest
-public class DynamicTopicTest extends IntegrationTestBase {
+class DynamicTopicTest extends IntegrationTestBase {
 
     @Inject
-    private TestActors testActors;
+    TestActors testActors;
 
-    private String topic;
+    String topic;
 
     @BeforeEach
     void createTopic() throws Exception {
@@ -51,7 +51,7 @@ public class DynamicTopicTest extends IntegrationTestBase {
     }
 
     @Test
-    public void shouldConsumeRecords() {
+    void shouldConsumeRecords() {
         Integer record = RandomUtils.nextInt();
 
         TestProducer<String, Integer> producer = this.testActors.producer(this.topic, StringSerializer.class, IntegerSerializer.class);
@@ -60,12 +60,12 @@ public class DynamicTopicTest extends IntegrationTestBase {
         producer.produce(record);
         List<Integer> actual = consumer.consume();
 
-        Assertions.assertThat(actual.size()).isEqualTo(1);
-        Assertions.assertThat(actual.get(actual.size() - 1)).isEqualTo(record);
+        Assertions.assertThat(actual).hasSize(1);
+        Assertions.assertThat(actual.get(0)).isEqualTo(record);
     }
 
     @Test
-    public void shouldConsumeRecordsUntilConditionIsFulfilled() throws InterruptedException {
+    void shouldConsumeRecordsUntilConditionIsFulfilled() throws InterruptedException {
         TestProducer<String, String> producer = this.testActors.producer(this.topic, StringSerializer.class, StringSerializer.class);
         TestConsumer<String, String> consumer = this.testActors.consumer(this.topic, StringDeserializer.class, StringDeserializer.class);
 
@@ -76,12 +76,13 @@ public class DynamicTopicTest extends IntegrationTestBase {
 
         List<String> actual = consumer.consumeUntil(RecordPredicates.sizeIs(999));
 
-        Assertions.assertThat(actual.size()).isEqualTo(999);
-        Assertions.assertThat(actual).contains("terefere-999");
+        Assertions.assertThat(actual)
+                .hasSize(999)
+                .contains("terefere-999");
     }
 
     @Test
-    public void shouldConsumeLatestRecord() throws InterruptedException {
+    void shouldConsumeLatestRecord() throws InterruptedException {
         TestProducer<String, Integer> producer = this.testActors.producer(this.topic, StringSerializer.class, IntegerSerializer.class);
         TestConsumer<String, Integer> consumer = this.testActors.consumer(this.topic, StringDeserializer.class, IntegerDeserializer.class);
 
@@ -96,7 +97,7 @@ public class DynamicTopicTest extends IntegrationTestBase {
     }
 
     @Test
-    public void shouldPollUntilRecordsFound() throws InterruptedException {
+    void shouldPollUntilRecordsFound() throws InterruptedException {
         TestProducer<String, Integer> producer = this.testActors.producer(this.topic, StringSerializer.class, IntegerSerializer.class);
         TestConsumer<String, Integer> consumer = this.testActors.consumer(this.topic, StringDeserializer.class, IntegerDeserializer.class);
 
@@ -107,11 +108,11 @@ public class DynamicTopicTest extends IntegrationTestBase {
 
         List<Integer> actual = consumer.consumeUntil(RecordPredicates.anyFound());
 
-        Assertions.assertThat(actual.size()).isGreaterThanOrEqualTo(1);
+        Assertions.assertThat(actual).isNotEmpty();
     }
 
     @Test
-    public void shouldStartPollingFirst() {
+    void shouldStartPollingFirst() {
         TestProducer<String, Integer> producer = this.testActors.producer(this.topic, StringSerializer.class, IntegerSerializer.class);
         TestConsumer<String, Integer> consumer = this.testActors.consumer(this.topic, StringDeserializer.class, IntegerDeserializer.class);
 
@@ -136,7 +137,7 @@ public class DynamicTopicTest extends IntegrationTestBase {
     }
 
     @Test
-    public void shouldPollUntilExpectedElementsFound() throws InterruptedException {
+    void shouldPollUntilExpectedElementsFound() throws InterruptedException {
         TestProducer<String, String> producer = this.testActors.producer(this.topic, StringSerializer.class, StringSerializer.class);
         TestConsumer<String, String> consumer = this.testActors.consumer(this.topic, StringDeserializer.class, StringDeserializer.class);
 
@@ -149,7 +150,7 @@ public class DynamicTopicTest extends IntegrationTestBase {
                 RandomStringUtils.randomAlphabetic(8),
                 RandomStringUtils.randomAlphabetic(8));
 
-        List<String> input = this.mergeAndShuffle(noise, expected);
+        List<String> input = this.shuffle(noise, expected);
 
         Executors.newSingleThreadExecutor().submit(() -> {
             input.stream().parallel().forEach(producer::send);
@@ -162,7 +163,7 @@ public class DynamicTopicTest extends IntegrationTestBase {
     }
 
     @Test
-    public void shouldConsumeGenericRecord() throws Exception {
+    void shouldConsumeGenericRecord() throws Exception {
         Schema schema = new Schemas().load("user.avro");
         SchemaRegistrySubjects.register(this.topic, new AvroSchema(schema)).using(this.getSchemaRegistryClient());
 
@@ -181,15 +182,16 @@ public class DynamicTopicTest extends IntegrationTestBase {
         GenericRecord actual = consumer.consumeUntilMatch(RecordPredicates.nameEquals(name));
 
         Assertions.assertThat(actual.toString())
-                .isEqualTo("{\"name\": \"" + name + "\", " +
+                .hasToString("{\"name\": \"" + name + "\", " +
                         "\"favorite_number\": 7, " +
                         "\"favorite_color\": \"blue\"}");
     }
 
-    private List<String> mergeAndShuffle(List<String> list1, List<String> list2) {
-        List<String> tmp = new ArrayList<>();
-        tmp.addAll(list1);
-        tmp.addAll(list2);
+    @SafeVarargs
+    private List<String> shuffle(List<String>... lists) {
+        List<String> tmp = new ArrayList<>(Stream.of(lists)
+                .flatMap(Collection::stream)
+                .toList());
 
         Collections.shuffle(tmp);
 

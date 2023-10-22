@@ -104,6 +104,6 @@ public class TestConsumer<K, V> {
     }
 
     private boolean isNullOrEmpty(String s) {
-        return s == null || s.equals("");
+        return s == null || s.isEmpty();
     }
 }
