@@ -10,11 +10,12 @@ import jakarta.inject.Singleton;
 @Factory
 public class TestActorFactory {
 
-    @Bean
-    @Primary
-    @Singleton
-    public TestActors create(@Property(name = "kafka.bootstrap.servers") String bootstrapServer,
-                             @Property(name = "kafka.schema.registry.url") String schemaRegistryUrl) {
-        return new TestActors(bootstrapServer, schemaRegistryUrl);
-    }
+  @Bean
+  @Primary
+  @Singleton
+  public TestActors create(
+      @Property(name = "kafka.bootstrap.servers") String bootstrapServer,
+      @Property(name = "kafka.schema.registry.url") String schemaRegistryUrl) {
+    return new TestActors(bootstrapServer, schemaRegistryUrl);
+  }
 }

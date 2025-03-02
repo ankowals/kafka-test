@@ -9,7 +9,6 @@ import lombok.*;
 @Setter
 public class EmailAddress {
 
-    String email;
-    boolean address;
-
+  String email;
+  boolean address;
 }

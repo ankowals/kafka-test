@@ -4,42 +4,43 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class User {
 
-    private String name;
-    @JsonProperty("favorite_number")
-    private int favorite_number;
-    @JsonProperty("favorite_color")
-    private String favorite_color;
+  private String name;
 
-    public User(String name, int favorite_number, String favorite_color) {
-        this.name = name;
-        this.favorite_number = favorite_number;
-        this.favorite_color = favorite_color;
-    }
+  @JsonProperty("favorite_number")
+  private int favorite_number;
 
-    public User() {
-    }
+  @JsonProperty("favorite_color")
+  private String favorite_color;
 
-    public String getName() {
-        return name;
-    }
+  public User(String name, int favorite_number, String favorite_color) {
+    this.name = name;
+    this.favorite_number = favorite_number;
+    this.favorite_color = favorite_color;
+  }
 
-    public void setName(String name) {
-        this.name = name;
-    }
+  public User() {}
 
-    public int getFavorite_number() {
-        return favorite_number;
-    }
+  public String getName() {
+    return name;
+  }
 
-    public void setFavorite_number(int favorite_number) {
-        this.favorite_number = favorite_number;
-    }
+  public void setName(String name) {
+    this.name = name;
+  }
 
-    public String getFavorite_color() {
-        return favorite_color;
-    }
+  public int getFavorite_number() {
+    return favorite_number;
+  }
 
-    public void setFavorite_color(String favorite_color) {
-        this.favorite_color = favorite_color;
-    }
+  public void setFavorite_number(int favorite_number) {
+    this.favorite_number = favorite_number;
+  }
+
+  public String getFavorite_color() {
+    return favorite_color;
+  }
+
+  public void setFavorite_color(String favorite_color) {
+    this.favorite_color = favorite_color;
+  }
 }

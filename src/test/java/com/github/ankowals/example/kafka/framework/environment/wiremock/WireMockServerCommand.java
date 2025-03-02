@@ -4,5 +4,5 @@ import com.github.tomakehurst.wiremock.WireMockServer;
 
 @FunctionalInterface
 public interface WireMockServerCommand {
-    void run(WireMockServer wireMockServer) throws Exception;
+  void run(WireMockServer wireMockServer) throws Exception;
 }

@@ -8,40 +8,41 @@ import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import io.micronaut.http.HttpStatus;
-import wiremock.org.apache.hc.core5.http.ContentType;
-
 import java.util.ArrayList;
 import java.util.List;
+import wiremock.org.apache.hc.core5.http.ContentType;
 
 public class ConfigureFilteringServiceStubCommand implements WireMockServerCommand {
 
-    private final ObjectWriter objectWriter;
-    private List<String> excludedValues;
+  private final ObjectWriter objectWriter;
+  private List<String> excludedValues;
 
-    ConfigureFilteringServiceStubCommand() {
-        this.objectWriter = new ObjectMapper().writer().withDefaultPrettyPrinter();
-        this.excludedValues = new ArrayList<>();
-    }
+  ConfigureFilteringServiceStubCommand() {
+    this.objectWriter = new ObjectMapper().writer().withDefaultPrettyPrinter();
+    this.excludedValues = new ArrayList<>();
+  }
 
-    public ConfigureFilteringServiceStubCommand excludedValues(List<String> values) {
-        this.excludedValues = values;
-        return this;
-    }
+  public ConfigureFilteringServiceStubCommand excludedValues(List<String> values) {
+    this.excludedValues = values;
+    return this;
+  }
 
-    @Override
-    public void run(WireMockServer wireMockServer) throws Exception {
-        wireMockServer.resetAll();
-        wireMockServer.stubFor(this.get("/excluded-values")
-                .willReturn(response(this.objectWriter.writeValueAsString(this.excludedValues))));
-    }
+  @Override
+  public void run(WireMockServer wireMockServer) throws Exception {
+    wireMockServer.resetAll();
+    wireMockServer.stubFor(
+        this.get("/excluded-values")
+            .willReturn(this.response(this.objectWriter.writeValueAsString(this.excludedValues))));
+  }
 
-    private MappingBuilder get(String path) {
-        return WireMock.get(WireMock.urlPathMatching(path));
-    }
+  private MappingBuilder get(String path) {
+    return WireMock.get(WireMock.urlPathMatching(path));
+  }
 
-    private ResponseDefinitionBuilder response(String body) {
-        return WireMock.aResponse().withStatus(HttpStatus.OK.getCode())
-                .withHeader("Content-Type", ContentType.APPLICATION_JSON.getMimeType())
-                .withBody(body);
-    }
+  private ResponseDefinitionBuilder response(String body) {
+    return WireMock.aResponse()
+        .withStatus(HttpStatus.OK.getCode())
+        .withHeader("Content-Type", ContentType.APPLICATION_JSON.getMimeType())
+        .withBody(body);
+  }
 }

@@ -1,16 +1,25 @@
 package com.github.ankowals.example.kafka.tests;
 
+import com.github.ankowals.example.kafka.IntegrationTestBase;
 import com.github.ankowals.example.kafka.framework.actors.TestActors;
-import com.github.ankowals.example.kafka.framework.environment.kafka.Schemas;
 import com.github.ankowals.example.kafka.framework.actors.TestConsumer;
 import com.github.ankowals.example.kafka.framework.actors.TestProducer;
-import com.github.ankowals.example.kafka.IntegrationTestBase;
+import com.github.ankowals.example.kafka.framework.environment.kafka.Schemas;
 import com.github.ankowals.example.kafka.framework.environment.kafka.commands.admin.KafkaTopics;
 import com.github.ankowals.example.kafka.framework.environment.kafka.commands.registry.SchemaRegistrySubjects;
 import com.github.ankowals.example.kafka.predicates.RecordPredicates;
 import io.confluent.kafka.schemaregistry.avro.AvroSchema;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import jakarta.inject.Inject;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
@@ -27,174 +36,197 @@ import org.awaitility.Awaitility;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
-
 @MicronautTest
 class DynamicTopicTest extends IntegrationTestBase {
 
-    @Inject
-    TestActors testActors;
+  @Inject TestActors testActors;
 
-    String topic;
+  String topic;
 
-    @BeforeEach
-    void createTopic() throws Exception {
-        this.topic = RandomStringUtils.randomAlphabetic(11);
-        KafkaTopics.create(this.topic).using(this.getAdminClient());
-    }
+  @BeforeEach
+  void createTopic() throws Exception {
+    this.topic = RandomStringUtils.insecure().nextAlphabetic(11);
+    KafkaTopics.create(this.topic).using(this.getAdminClient());
+  }
 
-    @Test
-    void shouldConsumeRecords() {
-        Integer record = RandomUtils.nextInt();
+  @Test
+  void shouldConsumeRecords() {
+    Integer nextInt = RandomUtils.insecure().randomInt();
 
-        TestProducer<String, Integer> producer = this.testActors.producer(this.topic, StringSerializer.class, IntegerSerializer.class);
-        TestConsumer<String, Integer> consumer = this.testActors.consumer(this.topic, StringDeserializer.class, IntegerDeserializer.class);
+    TestProducer<String, Integer> producer =
+        this.testActors.producer(this.topic, StringSerializer.class, IntegerSerializer.class);
+    TestConsumer<String, Integer> consumer =
+        this.testActors.consumer(this.topic, StringDeserializer.class, IntegerDeserializer.class);
 
-        producer.produce(record);
-        List<Integer> actual = consumer.consume();
+    producer.produce(nextInt);
+    List<Integer> actual = consumer.consume();
 
-        Assertions.assertThat(actual).hasSize(1);
-        Assertions.assertThat(actual.get(0)).isEqualTo(record);
-    }
+    Assertions.assertThat(actual).hasSize(1);
+    Assertions.assertThat(actual.getFirst()).isEqualTo(nextInt);
+  }
 
-    @Test
-    void shouldConsumeRecordsUntilConditionIsFulfilled() throws InterruptedException {
-        TestProducer<String, String> producer = this.testActors.producer(this.topic, StringSerializer.class, StringSerializer.class);
-        TestConsumer<String, String> consumer = this.testActors.consumer(this.topic, StringDeserializer.class, StringDeserializer.class);
+  @Test
+  void shouldConsumeRecordsUntilConditionIsFulfilled() throws InterruptedException {
+    TestProducer<String, String> producer =
+        this.testActors.producer(this.topic, StringSerializer.class, StringSerializer.class);
+    TestConsumer<String, String> consumer =
+        this.testActors.consumer(this.topic, StringDeserializer.class, StringDeserializer.class);
 
-        Executors.newSingleThreadExecutor().submit(() -> {
+    try (ExecutorService executorService = Executors.newSingleThreadExecutor()) {
+      executorService.submit(
+          () -> {
             (IntStream.range(1, 1000)).forEach(i -> producer.send("terefere-" + i));
             producer.close();
-        });
-
-        List<String> actual = consumer.consumeUntil(RecordPredicates.sizeIs(999));
-
-        Assertions.assertThat(actual)
-                .hasSize(999)
-                .contains("terefere-999");
+          });
     }
 
-    @Test
-    void shouldConsumeLatestRecord() throws InterruptedException {
-        TestProducer<String, Integer> producer = this.testActors.producer(this.topic, StringSerializer.class, IntegerSerializer.class);
-        TestConsumer<String, Integer> consumer = this.testActors.consumer(this.topic, StringDeserializer.class, IntegerDeserializer.class);
+    List<String> actual = consumer.consumeUntil(RecordPredicates.sizeIs(999));
 
-        Executors.newSingleThreadExecutor().submit(() -> {
+    Assertions.assertThat(actual).hasSize(999).contains("terefere-999");
+  }
+
+  @Test
+  void shouldConsumeLatestRecord() throws InterruptedException {
+    TestProducer<String, Integer> producer =
+        this.testActors.producer(this.topic, StringSerializer.class, IntegerSerializer.class);
+    TestConsumer<String, Integer> consumer =
+        this.testActors.consumer(this.topic, StringDeserializer.class, IntegerDeserializer.class);
+
+    try (ExecutorService executorService = Executors.newSingleThreadExecutor()) {
+      executorService.submit(
+          () -> {
             (IntStream.range(1, 1000)).parallel().forEach(producer::send);
             producer.close();
-        });
-
-        Integer actual = consumer.consumeUntilMatch(number -> number == 876);
-
-        Assertions.assertThat(actual).isEqualTo(876);
+          });
     }
 
-    @Test
-    void shouldPollUntilRecordsFound() throws InterruptedException {
-        TestProducer<String, Integer> producer = this.testActors.producer(this.topic, StringSerializer.class, IntegerSerializer.class);
-        TestConsumer<String, Integer> consumer = this.testActors.consumer(this.topic, StringDeserializer.class, IntegerDeserializer.class);
+    Integer actual = consumer.consumeUntilMatch(number -> number == 876);
 
-        Executors.newSingleThreadExecutor().submit(() -> {
+    Assertions.assertThat(actual).isEqualTo(876);
+  }
+
+  @Test
+  void shouldPollUntilRecordsFound() throws InterruptedException {
+    TestProducer<String, Integer> producer =
+        this.testActors.producer(this.topic, StringSerializer.class, IntegerSerializer.class);
+    TestConsumer<String, Integer> consumer =
+        this.testActors.consumer(this.topic, StringDeserializer.class, IntegerDeserializer.class);
+
+    try (ExecutorService executorService = Executors.newSingleThreadExecutor()) {
+      executorService.submit(
+          () -> {
             (IntStream.range(1, 1000)).parallel().forEach(producer::send);
             producer.close();
-        });
-
-        List<Integer> actual = consumer.consumeUntil(RecordPredicates.anyFound());
-
-        Assertions.assertThat(actual).isNotEmpty();
+          });
     }
 
-    @Test
-    void shouldStartPollingFirst() {
-        TestProducer<String, Integer> producer = this.testActors.producer(this.topic, StringSerializer.class, IntegerSerializer.class);
-        TestConsumer<String, Integer> consumer = this.testActors.consumer(this.topic, StringDeserializer.class, IntegerDeserializer.class);
+    List<Integer> actual = consumer.consumeUntil(RecordPredicates.anyFound());
 
-        AtomicReference<List<Integer>> actual = new AtomicReference<>();
+    Assertions.assertThat(actual).isNotEmpty();
+  }
 
-        Executors.newSingleThreadExecutor().submit(() -> {
+  @Test
+  void shouldStartPollingFirst() {
+    TestProducer<String, Integer> producer =
+        this.testActors.producer(this.topic, StringSerializer.class, IntegerSerializer.class);
+    TestConsumer<String, Integer> consumer =
+        this.testActors.consumer(this.topic, StringDeserializer.class, IntegerDeserializer.class);
+
+    AtomicReference<List<Integer>> actual = new AtomicReference<>();
+
+    try (ExecutorService executorService = Executors.newSingleThreadExecutor()) {
+      executorService.submit(
+          () -> {
             try {
-                actual.set(consumer.consumeUntil(list -> list.contains(459)));
+              actual.set(consumer.consumeUntil(list -> list.contains(459)));
             } catch (InterruptedException e) {
-                throw new RuntimeException(e);
+              throw new RuntimeException(e);
             }
-        });
-
-        Executors.newSingleThreadExecutor().submit(() -> {
-            (IntStream.range(1, 1000)).parallel().forEach(producer::send);
-            producer.close();
-        });
-
-        Awaitility.await().until(() -> actual.get() != null);
-
-        Assertions.assertThat(actual).hasValueMatching(l -> l.contains(459));
+          });
     }
 
-    @Test
-    void shouldPollUntilExpectedElementsFound() throws InterruptedException {
-        TestProducer<String, String> producer = this.testActors.producer(this.topic, StringSerializer.class, StringSerializer.class);
-        TestConsumer<String, String> consumer = this.testActors.consumer(this.topic, StringDeserializer.class, StringDeserializer.class);
+    try (ExecutorService executorService = Executors.newSingleThreadExecutor()) {
+      executorService.submit(
+          () -> {
+            (IntStream.range(1, 1000)).parallel().forEach(producer::send);
+            producer.close();
+          });
+    }
 
-        List<String> noise = IntStream.range(1, 1000)
-                                .mapToObj(i -> RandomStringUtils.randomAlphabetic(8))
-                                .toList();
+    Awaitility.await().until(() -> actual.get() != null);
 
-        List<String> expected = List.of(
-                RandomStringUtils.randomAlphabetic(8),
-                RandomStringUtils.randomAlphabetic(8),
-                RandomStringUtils.randomAlphabetic(8));
+    Assertions.assertThat(actual).hasValueMatching(l -> l.contains(459));
+  }
 
-        List<String> input = this.shuffle(noise, expected);
+  @Test
+  void shouldPollUntilExpectedElementsFound() throws InterruptedException {
+    TestProducer<String, String> producer =
+        this.testActors.producer(this.topic, StringSerializer.class, StringSerializer.class);
+    TestConsumer<String, String> consumer =
+        this.testActors.consumer(this.topic, StringDeserializer.class, StringDeserializer.class);
 
-        Executors.newSingleThreadExecutor().submit(() -> {
+    List<String> noise =
+        IntStream.range(1, 1000)
+            .mapToObj(i -> RandomStringUtils.insecure().nextAlphabetic(8))
+            .toList();
+
+    List<String> expected =
+        List.of(
+            RandomStringUtils.insecure().nextAlphabetic(8),
+            RandomStringUtils.insecure().nextAlphabetic(8),
+            RandomStringUtils.insecure().nextAlphabetic(8));
+
+    List<String> input = this.shuffle(noise, expected);
+
+    try (ExecutorService executorService = Executors.newSingleThreadExecutor()) {
+      executorService.submit(
+          () -> {
             input.stream().parallel().forEach(producer::send);
             producer.close();
-        });
-
-        List<String> actual = consumer.consumeUntil(RecordPredicates.containsAll(expected));
-
-        Assertions.assertThat(actual).doesNotHaveDuplicates();
+          });
     }
 
-    @Test
-    void shouldConsumeGenericRecord() throws Exception {
-        Schema schema = new Schemas().load("user.avro");
-        SchemaRegistrySubjects.register(this.topic, new AvroSchema(schema)).using(this.getSchemaRegistryClient());
+    List<String> actual = consumer.consumeUntil(RecordPredicates.containsAll(expected));
 
-        TestProducer<Bytes, Object> producer = this.testActors.producer(this.topic);
-        TestConsumer<Bytes, GenericRecord> consumer = this.testActors.consumer(this.topic);
+    Assertions.assertThat(actual).doesNotHaveDuplicates();
+  }
 
-        String name = RandomStringUtils.randomAlphabetic(11);
+  @Test
+  void shouldConsumeGenericRecord() throws Exception {
+    Schema schema = new Schemas().load("user.avro");
+    SchemaRegistrySubjects.register(this.topic, new AvroSchema(schema))
+        .using(this.getSchemaRegistryClient());
 
-        GenericData.Record record = new GenericRecordBuilder(schema)
-                .set("name", name)
-                .set("favorite_number", 7)
-                .set("favorite_color", "blue")
-                .build();
+    TestProducer<Bytes, Object> producer = this.testActors.producer(this.topic);
+    TestConsumer<Bytes, GenericRecord> consumer = this.testActors.consumer(this.topic);
 
-        producer.produce(record);
-        GenericRecord actual = consumer.consumeUntilMatch(RecordPredicates.nameEquals(name));
+    String name = RandomStringUtils.insecure().nextAlphabetic(11);
 
-        Assertions.assertThat(actual.toString())
-                .hasToString("{\"name\": \"" + name + "\", " +
-                        "\"favorite_number\": 7, " +
-                        "\"favorite_color\": \"blue\"}");
-    }
+    GenericData.Record genericRecord =
+        new GenericRecordBuilder(schema)
+            .set("name", name)
+            .set("favorite_number", 7)
+            .set("favorite_color", "blue")
+            .build();
 
-    @SafeVarargs
-    private List<String> shuffle(List<String>... lists) {
-        List<String> tmp = new ArrayList<>(Stream.of(lists)
-                .flatMap(Collection::stream)
-                .toList());
+    producer.produce(genericRecord);
+    GenericRecord actual = consumer.consumeUntilMatch(RecordPredicates.nameEquals(name));
 
-        Collections.shuffle(tmp);
+    Assertions.assertThat(actual.toString())
+        .hasToString(
+            "{\"name\": \""
+                + name
+                + "\", "
+                + "\"favorite_number\": 7, "
+                + "\"favorite_color\": \"blue\"}");
+  }
 
-        return tmp;
-    }
+  @SafeVarargs
+  private List<String> shuffle(List<String>... lists) {
+    List<String> tmp = new ArrayList<>(Stream.of(lists).flatMap(Collection::stream).toList());
+
+    Collections.shuffle(tmp);
+
+    return tmp;
+  }
 }

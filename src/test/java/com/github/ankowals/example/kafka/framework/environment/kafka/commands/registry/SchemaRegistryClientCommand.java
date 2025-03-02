@@ -4,5 +4,5 @@ import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
 
 @FunctionalInterface
 public interface SchemaRegistryClientCommand {
-    void using(SchemaRegistryClient schemaRegistryClient) throws Exception;
+  void using(SchemaRegistryClient schemaRegistryClient) throws Exception;
 }

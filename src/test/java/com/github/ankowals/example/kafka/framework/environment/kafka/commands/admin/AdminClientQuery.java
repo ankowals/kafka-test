@@ -4,5 +4,5 @@ import org.apache.kafka.clients.admin.AdminClient;
 
 @FunctionalInterface
 public interface AdminClientQuery<T> {
-    T using(AdminClient adminClient) throws Exception;
+  T using(AdminClient adminClient) throws Exception;
 }
